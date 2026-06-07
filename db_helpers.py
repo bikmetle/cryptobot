@@ -31,3 +31,24 @@ def update_bitcoin_trade_spread(session: Session, price: float | int | str | Dec
     session.refresh(trade)
 
     return trade
+
+
+def mark_bitcoin_trade_bought_back(session: Session, price: float | int | str | Decimal) -> BitcoinTrade | None:
+    current_price = _to_decimal(price)
+
+    trade = session.scalar(
+        select(BitcoinTrade)
+        .where(BitcoinTrade.spread_price.is_not(None))
+        .where(BitcoinTrade.price > current_price)
+        .where(BitcoinTrade.is_bought_back.is_(False))
+        .order_by(BitcoinTrade.created_at.desc(), BitcoinTrade.id.desc())
+    )
+
+    if trade is None:
+        return None
+
+    trade.is_bought_back = True
+    session.commit()
+    session.refresh(trade)
+
+    return trade
