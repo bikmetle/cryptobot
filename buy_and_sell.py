@@ -3,7 +3,7 @@ from datetime import datetime
 
 from consts import DAILY_BUY_USD
 from database import SessionLocal
-from db_helpers import add_bitcoin_trade, update_company
+from db_helpers import add_bitcoin_trade, update_bitcoin_trade_spread, update_company
 from models import Company
 from utils import _to_decimal
 
@@ -33,9 +33,14 @@ rows.sort()
 for date, price in rows:
     price = _to_decimal(price)
     with SessionLocal() as session:
-        btc = DAILY_BUY_USD / price
-        add_bitcoin_trade(session, price, DAILY_BUY_USD)
-        company = update_company(session, DAILY_BUY_USD, btc, 1)
+        to_spend = _to_decimal(DAILY_BUY_USD)
+        trade = update_bitcoin_trade_spread(session, price)
+        if trade:
+            to_spend -= trade.spread_usd
+
+        btc = to_spend / price
+        add_bitcoin_trade(session, price, to_spend)
+        company = update_company(session, to_spend, btc, 1)
 
     if date.day == 6 and date.month == 6:
         current_value = company.btc * price

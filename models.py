@@ -13,11 +13,11 @@ class BitcoinTrade(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     price: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
     btc: Mapped[Decimal] = mapped_column(Numeric(18, 8), nullable=False)
-    spent: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=False)
+    spent: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
-    spread_price: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=True)
-    spread_usd: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=True)
+    spread_price: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0.0"))
+    spread_usd: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0.0"))
     updated_at: Mapped[datetime|None] = mapped_column(DateTime, nullable=True)
 
     is_bought_back: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -27,5 +27,5 @@ class Company(Base):
     __tablename__ = "companies"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    spent: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal(0.0))
-    btc: Mapped[Decimal] = mapped_column(Numeric(18, 8), default=Decimal(0.0))
+    spent: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0.0"))
+    btc: Mapped[Decimal] = mapped_column(Numeric(18, 8), default=Decimal("0.0"))

@@ -37,7 +37,8 @@ def update_bitcoin_trade_spread(session: Session, price: float | int | str | Dec
         select(BitcoinTrade)
         .where(BitcoinTrade.price <= target_price)
         .where(BitcoinTrade.spent >= DAILY_BUY_USD)
-        .where(BitcoinTrade.spread_price.is_(None))
+        .where(BitcoinTrade.spread_price.is_(Decimal("0.0")))
+        .where(((current_price - BitcoinTrade.price) * BitcoinTrade.btc) > Decimal("1.0"))
         .order_by(BitcoinTrade.created_at.desc(), BitcoinTrade.id.desc())
     )
 
