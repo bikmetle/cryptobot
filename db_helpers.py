@@ -5,8 +5,28 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from consts import PERCENT, DAILY_BUY_USD
-from models import BitcoinTrade
+from models import BitcoinTrade, Company
 from utils import _to_decimal
+
+
+def add_bitcoin_trade(
+    session: Session,
+    price: float | int | str | Decimal,
+    usd: float | int | str | Decimal,
+) -> BitcoinTrade:
+    trade_price = _to_decimal(price)
+    spent = _to_decimal(usd)
+    trade = BitcoinTrade(
+        price=trade_price,
+        btc=spent / trade_price,
+        spent=spent,
+    )
+
+    session.add(trade)
+    session.commit()
+    session.refresh(trade)
+
+    return trade
 
 
 def update_bitcoin_trade_spread(session: Session, price: float | int | str | Decimal) -> BitcoinTrade | None:
@@ -52,3 +72,20 @@ def mark_bitcoin_trade_bought_back(session: Session, price: float | int | str | 
     session.refresh(trade)
 
     return trade
+
+
+def update_company(session: Session, spent: float | int | str | Decimal, btc: float | int | str | Decimal, id: int) -> Company:
+    company = session.scalar(
+        select(Company)
+        .where(Company.id == id)
+    )
+
+    if company is None:
+        raise ValueError("Company not found")
+
+    company.spent += _to_decimal(spent)
+    company.btc += _to_decimal(btc)
+    session.commit()
+    session.refresh(company)
+
+    return company

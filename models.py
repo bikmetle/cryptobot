@@ -27,5 +27,5 @@ class Company(Base):
     __tablename__ = "companies"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    spent: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=True)
-    btc: Mapped[Decimal | None] = mapped_column(Numeric(18, 8), nullable=True)
+    spent: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal(0.0))
+    btc: Mapped[Decimal] = mapped_column(Numeric(18, 8), default=Decimal(0.0))

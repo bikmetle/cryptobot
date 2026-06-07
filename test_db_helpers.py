@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from consts import DAILY_BUY_USD
-from db_helpers import mark_bitcoin_trade_bought_back, update_bitcoin_trade_spread
+from db_helpers import add_bitcoin_trade, mark_bitcoin_trade_bought_back, update_bitcoin_trade_spread
 from models import Base, BitcoinTrade
 
 
@@ -18,6 +18,18 @@ def session():
 
     with Session() as session:
         yield session
+
+
+def test_add_bitcoin_trade_creates_trade_with_given_price_and_usd(session):
+    trade = add_bitcoin_trade(session, Decimal("100.00"), Decimal("5.00"))
+
+    assert trade.id is not None
+    assert trade.price == Decimal("100.00")
+    assert trade.spent == Decimal("5.00")
+    assert trade.btc == Decimal("0.05000000")
+    assert trade.spread_price is None
+    assert trade.spread_usd is None
+    assert trade.is_bought_back is False
 
 
 def test_update_bitcoin_trade_spread_updates_trade_below_five_percent(session):
