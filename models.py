@@ -8,19 +8,19 @@ from database import Base
 
 
 class BitcoinTrade(Base):
-    __tablename__ = "bitcoin_trades"
+    __tablename__ = "trades"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    price: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
-    btc: Mapped[Decimal] = mapped_column(Numeric(18, 8), nullable=False)
-    spent: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
 
-    spread_price: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0.0"))
-    spread_usd: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0.0"))
-    updated_at: Mapped[datetime|None] = mapped_column(DateTime, nullable=True)
+    btc_amount: Mapped[Decimal] = mapped_column(Numeric(18, 8), nullable=False)
 
-    is_bought_back: Mapped[bool] = mapped_column(Boolean, default=False)
+    entry_price: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
+    entry_usd_amount: Mapped[Decimal] = mapped_column(Numeric(18, 2), nullable=False)
+    entered_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    exit_price: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=True)
+    exit_usd_amount: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=True)
+    exited_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class Company(Base):

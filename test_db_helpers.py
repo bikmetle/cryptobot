@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from consts import DAILY_BUY_USD
-from db_helpers import add_bitcoin_trade, mark_bitcoin_trade_bought_back, update_bitcoin_trade_spread
+from db_helpers import enter, mark_bitcoin_trade_bought_back, update_spread_to_sell
 from models import Base, BitcoinTrade
 
 
@@ -21,7 +21,7 @@ def session():
 
 
 def test_add_bitcoin_trade_creates_trade_with_given_price_and_usd(session):
-    trade = add_bitcoin_trade(session, Decimal("100.00"), Decimal("5.00"))
+    trade = enter(session, Decimal("100.00"), Decimal("5.00"))
 
     assert trade.id is not None
     assert trade.price == Decimal("100.00")
@@ -42,7 +42,7 @@ def test_update_bitcoin_trade_spread_updates_trade_below_five_percent(session):
     session.add(trade)
     session.commit()
 
-    updated_trade = update_bitcoin_trade_spread(session, Decimal("100.00"))
+    updated_trade = update_spread_to_sell(session, Decimal("100.00"))
 
     assert updated_trade is trade
     assert updated_trade.spread_price == Decimal("100.00")
@@ -60,7 +60,7 @@ def test_update_bitcoin_trade_spread_returns_none_when_spread_usd_is_not_above_o
     session.add(trade)
     session.commit()
 
-    updated_trade = update_bitcoin_trade_spread(session, Decimal("100.00"))
+    updated_trade = update_spread_to_sell(session, Decimal("100.00"))
 
     assert updated_trade is None
     assert trade.spread_price is None
@@ -77,7 +77,7 @@ def test_update_bitcoin_trade_spread_returns_none_when_no_trade_is_low_enough(se
     session.add(trade)
     session.commit()
 
-    updated_trade = update_bitcoin_trade_spread(session, Decimal("100.00"))
+    updated_trade = update_spread_to_sell(session, Decimal("100.00"))
 
     assert updated_trade is None
     assert trade.spread_price is None
@@ -96,7 +96,7 @@ def test_update_bitcoin_trade_spread_skips_already_updated_trade(session):
     session.add(trade)
     session.commit()
 
-    updated_trade = update_bitcoin_trade_spread(session, Decimal("100.00"))
+    updated_trade = update_spread_to_sell(session, Decimal("100.00"))
 
     assert updated_trade is None
     assert trade.spread_price == Decimal("99.00")

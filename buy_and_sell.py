@@ -1,9 +1,22 @@
 import csv
+import subprocess
 from datetime import datetime
+from pathlib import Path
+
+
+BASE_DIR = Path(__file__).resolve().parent
+
+
+def reset_database() -> None:
+    (BASE_DIR / "cryptobot.db").unlink(missing_ok=True)
+    subprocess.run(["alembic", "upgrade", "head"], cwd=BASE_DIR, check=True)
+
+
+reset_database()
 
 from consts import DAILY_BUY_USD
 from database import SessionLocal
-from db_helpers import add_bitcoin_trade, update_bitcoin_trade_spread, update_company
+from db_helpers import enter, exit, update_company
 from models import Company
 from utils import _to_decimal
 
@@ -34,13 +47,12 @@ for date, price in rows:
     price = _to_decimal(price)
     with SessionLocal() as session:
         to_spend = _to_decimal(DAILY_BUY_USD)
-        trade = update_bitcoin_trade_spread(session, price)
-        if trade:
-            to_spend -= trade.spread_usd
-
         btc = to_spend / price
-        add_bitcoin_trade(session, price, to_spend)
-        company = update_company(session, to_spend, btc, 1)
+        entry_trade = enter(session, price)
+        company = update_company(session, entry_trade.entry_usd_amount, entry_trade.btc_amount, 1)
+
+        if exit_trade:= exit(session, price):
+            company = update_company(session, -exit_trade.exit_usd_amount, -exit_trade.btc_amount, 1)
 
     if date.day == 6 and date.month == 6:
         current_value = company.btc * price
