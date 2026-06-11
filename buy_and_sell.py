@@ -1,3 +1,5 @@
+# to do make tg group to track all trades
+# every buy and sell and show total
 import csv
 import subprocess
 from datetime import datetime
@@ -14,11 +16,10 @@ def reset_database() -> None:
 
 reset_database()
 
-from consts import DAILY_BUY_USD
 from database import SessionLocal
-from db_helpers import enter, exit, update_company
+from db_helpers import enter, exit, get_company, get_trades_count, update_company
 from models import Company
-from utils import _to_decimal
+from utils import _to_decimal, calculate_usd_amount_from_trade_counts
 
 with SessionLocal() as session:
     company = Company(
@@ -43,22 +44,33 @@ with open(filename, newline="", encoding="utf-8-sig") as file:
 # Sort from oldest date to newest date
 rows.sort()
 
+
 for date, price in rows:
     price = _to_decimal(price)
     with SessionLocal() as session:
-        to_spend = _to_decimal(DAILY_BUY_USD)
-        btc = to_spend / price
-        entry_trade = enter(session, price)
-        company = update_company(session, entry_trade.entry_usd_amount, entry_trade.btc_amount, 1)
+        company_spent = _to_decimal(0)
+        if exit_trade:= exit(session, price, date):
+            exit_usd_amount = exit_trade.exit_usd_amount
+            if exit_usd_amount is None:
+                raise ValueError("Exit trade is missing exit_usd_amount")
 
-        if exit_trade:= exit(session, price):
-            company = update_company(session, -exit_trade.exit_usd_amount, -exit_trade.btc_amount, 1)
+            company = update_company(session, -exit_usd_amount, -exit_trade.btc_amount, 1)
+
+        else:
+            company = get_company(session, 1)
+            company_spent = company.spent
+
+        total_trades, exited_trades = get_trades_count(session)
+        usd_amount = calculate_usd_amount_from_trade_counts(total_trades, exited_trades, company_spent)
+        entry_trade = enter(session, price, usd_amount, date)
+        company = update_company(session, entry_trade.entry_usd_amount, entry_trade.btc_amount, 1)
 
     if date.day == 6 and date.month == 6:
         current_value = company.btc * price
 
-        print(f"Total money spent: ${company.spent:,.2f}")
+        print(f"\nTotal money spent: ${company.spent:,.2f}")
         print(f"Current btc price: ${price:,.2f}")
         print(f"Total Bitcoin owned: {company.btc:.8f} BTC")
         print(f"Current value: ${current_value:,.2f}")
-        print(f"Profit/Loss: ${current_value - company.spent:,.2f}\n\n")
+        print(f"Profit/Loss: ${current_value - company.spent:,.2f}")
+        print(f"Usd amount: ${usd_amount:,.2f}\n")
