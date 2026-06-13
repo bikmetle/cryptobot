@@ -1,17 +1,21 @@
 from datetime import datetime
 from decimal import Decimal
-
 from sqlalchemy import BigInteger, DateTime, Numeric
 from sqlalchemy.orm import Mapped, mapped_column
-
 from database import Base
+from enum import Enum
+
+
+class TradeKind(Enum):
+    EXIT = "Exit"
+    ENTRY = "Entry"
 
 
 class BitcoinTrade(Base):
     __tablename__ = "trades"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    tg_msg_id: Mapped[int] = mapped_column(BigInteger) # save entry trade and replay to entry trade when exit
+    # tg_msg_id: Mapped[int] = mapped_column(BigInteger) # save entry trade and replay to entry trade when exit
 
     btc_amount: Mapped[Decimal] = mapped_column(Numeric(18, 8), nullable=False)
 

@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from utils import calculate_usd_amount_from_price_range, calculate_usd_amount_from_trade_counts
+from utils import calculate_usd_amount_from_price_range, calculate_usd_amount
 
 
 def test_calculate_usd_amount_from_price_range_returns_minimum_when_range_is_missing():
@@ -16,8 +16,8 @@ def test_calculate_usd_amount_from_price_range_returns_minimum_when_prices_match
 
 
 def test_calculate_usd_amount_from_trade_counts_returns_maximum_when_no_trades_exist():
-    assert calculate_usd_amount_from_trade_counts(0, 0) == Decimal("15")
+    assert calculate_usd_amount(0, 0) == Decimal("15")
 
 
 def test_calculate_usd_amount_from_trade_counts_scales_down_by_exit_ratio():
-    assert calculate_usd_amount_from_trade_counts(10, 5) == Decimal("8.0")
+    assert calculate_usd_amount(10, 5) == Decimal("8.0")

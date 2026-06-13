@@ -62,30 +62,17 @@ def update_company(session: Session, spent: Decimal, btc: Decimal, company_id: i
     return company
 
 
-def exit(session: Session, price: Decimal, exited_at: datetime) -> BitcoinTrade | None:
-    trades = session.scalars(
-        select(BitcoinTrade)
-        .where(BitcoinTrade.entry_price <= price)
-        .where(BitcoinTrade.exit_price.is_(None))
-        .order_by(BitcoinTrade.entered_at.asc(), BitcoinTrade.id.asc())
-    ).all()
+def exit(session: Session, trade: BitcoinTrade,  price: Decimal, exited_at: datetime) -> BitcoinTrade:
+    usd = trade.btc_amount*price
 
-    for trade in trades:
-        if not is_price_above_compound_interest(price, trade, exited_at):
-            continue
+    trade.exit_price=price
+    trade.exit_usd_amount=usd
+    trade.exited_at=exited_at
 
-        usd = trade.btc_amount*price
+    session.commit()
+    session.refresh(trade)
 
-        trade.exit_price=price
-        trade.exit_usd_amount=usd
-        trade.exited_at=exited_at
-
-        session.commit()
-        session.refresh(trade)
-
-        return trade
-    
-    return None
+    return trade
 
 
 def get_company(session: Session, company_id: int) -> Company:
@@ -98,3 +85,20 @@ def get_company(session: Session, company_id: int) -> Company:
         raise ValueError("Company not found")
 
     return company
+
+
+def get_trade_to_exit(session: Session, price: Decimal, exited_at: datetime) -> BitcoinTrade | None:
+    trades = session.scalars(
+        select(BitcoinTrade)
+        .where(BitcoinTrade.entry_price <= price)
+        .where(BitcoinTrade.exit_price.is_(None))
+        .order_by(BitcoinTrade.entered_at.asc(), BitcoinTrade.id.asc())
+    ).all()
+
+    for trade in trades:
+        if not is_price_above_compound_interest(price, trade, exited_at):
+            continue
+
+        return trade
+    
+    return None
