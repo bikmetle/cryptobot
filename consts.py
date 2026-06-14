@@ -11,6 +11,6 @@ API_KEY = os.getenv("API_KEY")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 INTEREST = _to_decimal(os.getenv("INTEREST"))
+INFLATION = _to_decimal(os.getenv("INFLATION"))
 MIN_PLATFORM_USD = _to_decimal(os.getenv("MIN_PLATFORM_USD"))
-MIN_DAILY_BUY_USD = _to_decimal(os.getenv("MIN_DAILY_BUY_USD"))
-MAX_DAILY_BUY_USD = _to_decimal(os.getenv("MAX_DAILY_BUY_USD"))
+DAILY_BUY_USD = _to_decimal(os.getenv("DAILY_BUY_USD"))

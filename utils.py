@@ -2,11 +2,11 @@ from datetime import date
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from consts import INTEREST, MAX_DAILY_BUY_USD, MIN_DAILY_BUY_USD, MIN_PLATFORM_USD
-from models import Company, TradeKind
+from consts import INFLATION, INTEREST, DAILY_BUY_USD, DAILY_BUY_USD, MIN_PLATFORM_USD
 from converters import _to_decimal
 
 if TYPE_CHECKING:
+    from models import Company
     from models import BitcoinTrade
 
 
@@ -19,27 +19,23 @@ def is_price_above_compound_interest(current_price, trade: "BitcoinTrade", exite
     return current_price > target_price
 
 
+def is_usd_delta_above_min_platform_usd(entry_usd: Decimal, exit_price: Decimal, trade: "BitcoinTrade"):
+    exit_usd = exit_price*trade.btc_amount
+    usd_delta = entry_usd - exit_usd
+
+    return abs(usd_delta) > MIN_PLATFORM_USD
+
+
 def calculate_usd_amount(
-    total_trades: int,
-    exited_trades: int,
-    company: Company,
-    trade_kind: TradeKind
+    company: "Company",
+    current_date: date
 ) -> Decimal:
-    if total_trades < 90:
-        return MAX_DAILY_BUY_USD//3
-
-    exit_ratio = _to_decimal(exited_trades/total_trades)
-    amount_range = MAX_DAILY_BUY_USD - MIN_PLATFORM_USD
-
-    usd_amount = MAX_DAILY_BUY_USD - amount_range * exit_ratio
-
-    if trade_kind == TradeKind.EXIT and company.spent < 0:
-        usd_amount -= company.spent/100
-
-    if usd_amount > MAX_DAILY_BUY_USD:
-        return MAX_DAILY_BUY_USD
-
-    if usd_amount < MIN_DAILY_BUY_USD:
-        return MIN_DAILY_BUY_USD
+    days = (current_date - company.created_at.date()).days
+    years = _to_decimal(days/365)
+    usd_amount = DAILY_BUY_USD * (1 + INFLATION / 100) ** years
 
     return usd_amount
+
+
+def _to_decimal(value: float | int | str | Decimal) -> Decimal:
+    return Decimal(str(value))

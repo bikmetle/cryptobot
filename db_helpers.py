@@ -5,29 +5,14 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from models import BitcoinTrade, Company
-from utils import is_price_above_compound_interest
-
-
-def get_trades_count(
-    session: Session,
-) -> tuple[int, int]:
-    total_trades = session.scalar(
-        select(func.count(BitcoinTrade.id))
-    ) or 0
-
-    exited_trades = session.scalar(
-        select(func.count(BitcoinTrade.id))
-        .where(BitcoinTrade.exit_price.is_not(None))
-    ) or 0
-
-    return total_trades, exited_trades
+from utils import is_price_above_compound_interest, is_usd_delta_above_min_platform_usd
 
 
 def enter(
     session: Session,
     price: Decimal,
     usd_amount: Decimal,
-    entered_at: datetime
+    entered_at: datetime,
 ) -> BitcoinTrade:
     btc=usd_amount/price
 
@@ -35,7 +20,7 @@ def enter(
         btc_amount=btc,
         entry_price=price,
         entry_usd_amount=usd_amount,
-        entered_at=entered_at
+        entered_at=entered_at,
     )
 
     session.add(trade)
@@ -45,16 +30,16 @@ def enter(
     return trade
 
 
-def update_company(session: Session, spent: Decimal, btc: Decimal, company_id: int) -> Company:
+def update_company(session: Session, usd_amount: Decimal, btc: Decimal, tg_group_id: int) -> Company:
     company = session.scalar(
         select(Company)
-        .where(Company.id == company_id)
+        .where(Company.tg_group_id == tg_group_id)
     )
 
     if company is None:
         raise ValueError("Company not found")
 
-    company.spent += spent
+    company.balance += usd_amount
     company.btc += btc
     session.commit()
     session.refresh(company)
@@ -78,7 +63,7 @@ def exit(session: Session, trade: BitcoinTrade,  price: Decimal, exited_at: date
 def get_company(session: Session, company_id: int) -> Company:
     company = session.scalar(
         select(Company)
-        .where(Company.id == company_id)
+        .where(Company.tg_group_id == company_id)
     )
 
     if company is None:
@@ -87,7 +72,7 @@ def get_company(session: Session, company_id: int) -> Company:
     return company
 
 
-def get_trade_to_exit(session: Session, price: Decimal, exited_at: datetime) -> BitcoinTrade | None:
+def get_trade_to_exit(session: Session, price: Decimal, entry_usd: Decimal, exited_at: datetime) -> BitcoinTrade | None:
     trades = session.scalars(
         select(BitcoinTrade)
         .where(BitcoinTrade.entry_price <= price)
@@ -97,6 +82,9 @@ def get_trade_to_exit(session: Session, price: Decimal, exited_at: datetime) -> 
 
     for trade in trades:
         if not is_price_above_compound_interest(price, trade, exited_at):
+            continue
+
+        if not is_usd_delta_above_min_platform_usd(entry_usd, price, trade):
             continue
 
         return trade

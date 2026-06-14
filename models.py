@@ -1,14 +1,8 @@
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import BigInteger, DateTime, Numeric
+from sqlalchemy import DateTime, Numeric
 from sqlalchemy.orm import Mapped, mapped_column
 from database import Base
-from enum import Enum
-
-
-class TradeKind(Enum):
-    EXIT = "Exit"
-    ENTRY = "Entry"
 
 
 class BitcoinTrade(Base):
@@ -31,6 +25,7 @@ class BitcoinTrade(Base):
 class Company(Base):
     __tablename__ = "companies"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    spent: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0.0"))
+    tg_group_id: Mapped[int] = mapped_column(primary_key=True)
+    balance: Mapped[Decimal] = mapped_column(Numeric(18, 2), default=Decimal("0.0"))
     btc: Mapped[Decimal] = mapped_column(Numeric(18, 8), default=Decimal("0.0"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
