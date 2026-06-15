@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
 from database import SessionLocal
-from models import BitcoinTrade
+from database import BitcoinTrade
 
 
 def main() -> None:
@@ -16,7 +16,7 @@ def main() -> None:
             select(BitcoinTrade).order_by(BitcoinTrade.entered_at.asc())
         ).all()
 
-    entry_dates = [trade.entered_at for trade in trades]
+    entry_dates = [mdates.date2num(trade.entered_at) for trade in trades]
     entry_usd_amounts = [float(trade.entry_usd_amount) for trade in trades]
     entry_prices = [float(trade.entry_price) for trade in trades]
 
@@ -25,13 +25,22 @@ def main() -> None:
         for trade in trades
         if trade.exited_at is not None and trade.exit_usd_amount is not None
     ]
-    exit_dates = [trade.exited_at for trade in exited_trades]
-    exit_usd_amounts = [float(trade.exit_usd_amount) for trade in exited_trades]
+    exit_dates = []
+    exit_usd_amounts = []
+    for trade in exited_trades:
+        if trade.exited_at is None or trade.exit_usd_amount is None:
+            continue
+
+        exit_dates.append(mdates.date2num(trade.exited_at))
+        exit_usd_amounts.append(float(trade.exit_usd_amount))
 
     amounts_figure = plt.figure(figsize=(18, 6))
     for trade in exited_trades:
+        if trade.exited_at is None or trade.exit_usd_amount is None:
+            continue
+
         plt.plot(
-            [trade.entered_at, trade.exited_at],
+            [mdates.date2num(trade.entered_at), mdates.date2num(trade.exited_at)],
             [float(trade.entry_usd_amount), float(trade.exit_usd_amount)],
             color="gray",
             linewidth=0.7,

@@ -5,11 +5,13 @@ from typing import TYPE_CHECKING
 from consts import INFLATION, INTEREST, DAILY_BUY_USD, MIN_PLATFORM_USD
 
 if TYPE_CHECKING:
-    from models import Company
-    from models import BitcoinTrade
+    from database import Company
+    from database import BitcoinTrade
 
 
-def _to_decimal(value: float | int | str | Decimal) -> Decimal:
+def _to_decimal(value: float | int | str | Decimal | None) -> Decimal:
+    if value is None:
+        raise RuntimeError("value is not set")
     return Decimal(str(value))
 
 

@@ -4,22 +4,21 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from models import BitcoinTrade, Company
+from database import BitcoinTrade, Company
 from utils import is_price_above_compound_interest, is_usd_delta_above_min_platform_usd
 
 
 def enter(
     session: Session,
+    btc: Decimal,
+    usd: Decimal,
     price: Decimal,
-    usd_amount: Decimal,
     entered_at: datetime,
 ) -> BitcoinTrade:
-    btc=usd_amount/price
-
     trade = BitcoinTrade(
         btc_amount=btc,
+        entry_usd_amount=usd,
         entry_price=price,
-        entry_usd_amount=usd_amount,
         entered_at=entered_at,
     )
 
@@ -46,11 +45,9 @@ def update_company(session: Session, usd_amount: Decimal, btc: Decimal) -> Compa
     return company
 
 
-def exit(session: Session, trade: BitcoinTrade,  price: Decimal, exited_at: datetime) -> BitcoinTrade:
-    usd = trade.btc_amount*price
-
-    trade.exit_price=price
+def exit(session: Session, trade: BitcoinTrade,  usd: Decimal, price: Decimal, exited_at: datetime) -> BitcoinTrade:
     trade.exit_usd_amount=usd
+    trade.exit_price=price
     trade.exited_at=exited_at
 
     session.commit()
@@ -59,7 +56,7 @@ def exit(session: Session, trade: BitcoinTrade,  price: Decimal, exited_at: date
     return trade
 
 
-def get_or_create_company(session: Session) -> Company:
+def get_company(session: Session) -> Company:
     company = session.scalar(
         select(Company)
     )

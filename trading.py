@@ -1,14 +1,13 @@
 from datetime import datetime, timezone
 from bitget import buy_btc, get_btc_prices, sell_btc
-from database import SessionLocal
-from db_helpers import enter, exit, get_or_create_company, get_trade_to_exit, update_company
+from db_helpers import enter, exit, get_company, get_trade_to_exit, update_company
 from utils import calculate_usd_amount
 
 
 def trade(session):
     msg = ""
     date = datetime.now(timezone.utc)
-    company = get_or_create_company(session)
+    company = get_company(session)
     entry_usd = calculate_usd_amount(company, date)
     entry_price, exit_price = get_btc_prices()
     entry_btc = entry_usd/entry_price
@@ -41,15 +40,19 @@ def trade(session):
                 f"\nearned ${result.usd:,.8f}"
             )
 
+        else:
+            raise RuntimeError("Trade exit selected with zero USD delta")
+
         price = result.price
 
-        exit(session, trade_to_exit, btc, usd, price, date)
+        exit(session, trade_to_exit, usd, price, date)
         company = update_company(session, usd, -btc)
 
     else:
         result = buy_btc(entry_usd)
         btc = result.btc
         usd = result.usd
+        price = result.price
 
         msg += (
             f"\nbought {btc:,.6f} BTC"
