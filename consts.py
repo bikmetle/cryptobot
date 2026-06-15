@@ -12,3 +12,7 @@ INTEREST = os.getenv("INTEREST")
 INFLATION = os.getenv("INFLATION")
 MIN_PLATFORM_USD = os.getenv("MIN_PLATFORM_USD")
 DAILY_BUY_USD = os.getenv("DAILY_BUY_USD")
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+GROUP_TG_ID = os.getenv("GROUP_TG_ID")
+ADMIN_TG_ID = os.getenv("ADMIN_TG_ID")

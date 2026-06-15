@@ -54,13 +54,13 @@ def _check_response(payload):
     return payload["data"]
 
 
-def _signature(timestamp, method, path, query_string="", body=""):
+def _signature(secret_key: str, timestamp, method, path, query_string="", body=""):
     message = f"{timestamp}{method}{path}"
     if query_string:
         message += f"?{query_string}"
     message += body
     digest = hmac.new(
-        SECRET_KEY.encode(),
+        secret_key.encode(),
         message.encode(),
         hashlib.sha256,
     ).digest()
@@ -68,14 +68,17 @@ def _signature(timestamp, method, path, query_string="", body=""):
 
 
 def _headers(method, path, query_string="", body=""):
-    if not API_KEY or not SECRET_KEY or not PASSPHRASE:
+    api_key = API_KEY
+    secret_key = SECRET_KEY
+    passphrase = PASSPHRASE
+    if not api_key or not secret_key or not passphrase:
         raise RuntimeError("API_KEY, SECRET_KEY, and PASSPHRASE must be set")
 
     timestamp = str(int(time.time() * 1000))
     return {
-        "ACCESS-KEY": API_KEY,
-        "ACCESS-SIGN": _signature(timestamp, method, path, query_string, body),
-        "ACCESS-PASSPHRASE": PASSPHRASE,
+        "ACCESS-KEY": api_key,
+        "ACCESS-SIGN": _signature(secret_key, timestamp, method, path, query_string, body),
+        "ACCESS-PASSPHRASE": passphrase,
         "ACCESS-TIMESTAMP": timestamp,
         "Content-Type": "application/json",
         "locale": "en-US",

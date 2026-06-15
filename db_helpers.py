@@ -1,7 +1,7 @@
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from models import BitcoinTrade, Company
@@ -59,13 +59,18 @@ def exit(session: Session, trade: BitcoinTrade,  price: Decimal, exited_at: date
     return trade
 
 
-def get_company(session: Session) -> Company:
+def get_or_create_company(session: Session) -> Company:
     company = session.scalar(
         select(Company)
     )
 
     if company is None:
-        raise ValueError("Company not found")
+        company = Company(
+            created_at = datetime.now()
+        )
+
+        session.add(company)
+        session.commit()
 
     return company
 

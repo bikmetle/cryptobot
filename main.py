@@ -1,16 +1,11 @@
 import asyncio
-from datetime import date, datetime, time, timedelta, timezone
-import os
-
+from datetime import datetime, time, timedelta, timezone
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
-from dotenv import load_dotenv
-
+from consts import ADMIN_TG_ID, BOT_TOKEN, GROUP_TG_ID
 from database import SessionLocal
-from models import Company
-from trading import get_rows, trade
-
+from trading import trade
 
 dp = Dispatcher()
 
@@ -22,29 +17,16 @@ async def start(message: Message) -> None:
 
 @dp.message(Command("id"))
 async def get_id(message: Message) -> None:
+    if message.from_user is None:
+        await message.answer(f"Chat ID: {message.chat.id}")
+        return
+
     await message.answer(
         f"Your ID: {message.from_user.id}\nChat ID: {message.chat.id}"
     )
 
 
-@dp.message(Command("init"))
-async def get_id(message: Message) -> None:
-    if message.chat.type != "private":
-        with SessionLocal() as session:
-            company = Company(
-                created_at = date(2021, 6, 6),
-                # created_at = datetime.now()
-            )
-
-            session.add(company)
-            session.commit()
-
-        await message.answer(
-            "Successfully initiated"
-        )
-
-
-async def daily_trade(bot: Bot, group_id: int, admin_id: int) -> None:
+async def daily_trade(bot: Bot) -> None:
     while True:
         now = datetime.now(timezone.utc)
         next_run = (
@@ -54,29 +36,25 @@ async def daily_trade(bot: Bot, group_id: int, admin_id: int) -> None:
 
         await asyncio.sleep((next_run - now).total_seconds())
         try:
-            msg = trade()
-            await bot.send_message(group_id, msg)
+            with SessionLocal() as session:
+                msg = trade(session)
+            await bot.send_message(GROUP_TG_ID, msg)
         except Exception as e:
-            await bot.send_message(admin_id, f"daily trade error:\n{e}\n#error")
+            await bot.send_message(ADMIN_TG_ID, f"daily trade error:\n{e}\n#error")
 
 
 async def main() -> None:
-    load_dotenv()
-
-    bot_token = os.getenv("BOT_TOKEN")
-    if not bot_token:
+    if not BOT_TOKEN:
         raise RuntimeError("BOT_TOKEN is not set")
 
-    group_id = os.getenv("GROUP_TG_ID")
-    if not group_id:
+    if not GROUP_TG_ID:
         raise RuntimeError("GROUP_TG_ID is not set")
 
-    admin_id = os.getenv("ADMIN_TG_ID")
-    if not group_id:
+    if not ADMIN_TG_ID:
         raise RuntimeError("ADMIN_TG_ID is not set")
 
-    bot = Bot(token=bot_token)
-    daily_task = asyncio.create_task(daily_trade(bot, int(group_id), int(admin_id)))
+    bot = Bot(token=BOT_TOKEN)
+    daily_task = asyncio.create_task(daily_trade(bot))
 
     try:
         await dp.start_polling(bot)
