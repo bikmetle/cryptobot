@@ -35,8 +35,8 @@ build/
 dist/
 *.egg-info/
 
-# Alembic generated migration files
-alembic/versions/
+# Alembic cache files
+alembic/versions/__pycache__/
 
 .agents/
 .codex/

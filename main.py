@@ -5,6 +5,7 @@ from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 from consts import ADMIN_TG_ID, BOT_TOKEN, GROUP_TG_ID
 from database import SessionLocal
+from db_helpers import get_company
 from trading import trade
 
 dp = Dispatcher()

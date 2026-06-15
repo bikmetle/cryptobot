@@ -6,8 +6,5 @@ services:
     environment:
       DATABASE_URL: sqlite:////data/cryptobot.db
     volumes:
-      - cryptobot-data:/data
+      - ./data:/data
     restart: unless-stopped
-
-volumes:
-  cryptobot-data:

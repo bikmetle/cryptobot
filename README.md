@@ -76,7 +76,7 @@ Build and start the bot with Docker Compose:
 docker compose up --build -d
 ```
 
-The Compose setup reads `.env` from the project root and stores the SQLite database in a named Docker volume at `/data/cryptobot.db`.
+The Compose setup reads `.env` from the project root and stores the SQLite database in `./data/cryptobot.db` on your machine, mounted inside the container at `/data/cryptobot.db`. On startup, the container runs `alembic upgrade head` before starting the bot.
 
 To stop the bot:
 
