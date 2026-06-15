@@ -26,7 +26,7 @@ async def get_id(message: Message) -> None:
     )
 
 
-async def daily_trade(bot: Bot) -> None:
+async def daily_trade(bot: Bot, group_tg_id: str, admin_tg_id: str) -> None:
     while True:
         now = datetime.now(timezone.utc)
         next_run = (
@@ -38,23 +38,25 @@ async def daily_trade(bot: Bot) -> None:
         try:
             with SessionLocal() as session:
                 msg = trade(session)
-            await bot.send_message(GROUP_TG_ID, msg)
+            await bot.send_message(group_tg_id, msg)
         except Exception as e:
-            await bot.send_message(ADMIN_TG_ID, f"daily trade error:\n{e}\n#error")
+            await bot.send_message(admin_tg_id, f"daily trade error:\n{e}\n#error")
 
 
 async def main() -> None:
     if not BOT_TOKEN:
         raise RuntimeError("BOT_TOKEN is not set")
 
-    if not GROUP_TG_ID:
+    group_tg_id = GROUP_TG_ID
+    if not group_tg_id:
         raise RuntimeError("GROUP_TG_ID is not set")
 
-    if not ADMIN_TG_ID:
+    admin_tg_id = ADMIN_TG_ID
+    if not admin_tg_id:
         raise RuntimeError("ADMIN_TG_ID is not set")
 
     bot = Bot(token=BOT_TOKEN)
-    daily_task = asyncio.create_task(daily_trade(bot))
+    daily_task = asyncio.create_task(daily_trade(bot, group_tg_id, admin_tg_id))
 
     try:
         await dp.start_polling(bot)
