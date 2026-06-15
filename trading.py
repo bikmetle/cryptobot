@@ -1,74 +1,77 @@
 from datetime import datetime, timezone
 from bitget import buy_btc, get_btc_prices, sell_btc
-from db_helpers import enter, exit, get_company, get_trade_to_exit, update_company
+from db_helpers import enter as record_trade_entry
+from db_helpers import exit as record_trade_exit
+from db_helpers import get_company, get_trade_to_exit, update_company
 from utils import calculate_usd_amount
 
 
 def trade(session):
-    msg = ""
-    date = datetime.now(timezone.utc)
+    message = ""
+    traded_at = datetime.now(timezone.utc)
     company = get_company(session)
-    entry_usd = calculate_usd_amount(company, date)
-    entry_price, exit_price = get_btc_prices()
-    entry_btc = entry_usd/entry_price
-    trade_to_exit = get_trade_to_exit(session, exit_price, entry_usd, date)
+    planned_entry_usd = calculate_usd_amount(company, traded_at)
+    buy_price, sell_price = get_btc_prices()
+    planned_entry_btc = planned_entry_usd / buy_price
+    trade_to_exit = get_trade_to_exit(session, sell_price, planned_entry_usd, traded_at)
 
     if trade_to_exit:
-        exit_usd = exit_price*trade_to_exit.btc_amount
-        exit_btc = trade_to_exit.btc_amount
+        exiting_trade_usd = sell_price * trade_to_exit.btc_amount
+        exiting_trade_btc = trade_to_exit.btc_amount
 
-        usd_delta = entry_usd - exit_usd
-        btc_delta = entry_btc - exit_btc
+        usd_needed_for_entry = planned_entry_usd - exiting_trade_usd
 
-        if usd_delta > 0:
-            result = buy_btc(usd_delta)
-            btc = exit_btc+result.btc
-            usd = exit_usd+result.usd
+        if usd_needed_for_entry > 0:
+            order = buy_btc(usd_needed_for_entry)
+            entry_btc = exiting_trade_btc + order.btc
+            entry_usd = exiting_trade_usd + order.usd
 
-            msg += (
-                f"\nbought {result.btc:,.6f} BTC"
-                f"\nspent ${result.usd:,.8f}"
+            message += (
+                f"\nbought {order.btc:,.6f} BTC"
+                f"\nspent ${order.usd:,.8f}"
             )
-            
-        elif usd_delta < 0:
-            result = sell_btc(btc_delta)
-            btc = exit_btc-result.btc
-            usd = exit_usd-result.usd
 
-            msg += (
-                f"\nsold {result.btc:,.6f} BTC"
-                f"\nearned ${result.usd:,.8f}"
+        elif usd_needed_for_entry < 0:
+            btc_to_sell = exiting_trade_btc - planned_entry_btc
+            order = sell_btc(btc_to_sell)
+            entry_btc = exiting_trade_btc - order.btc
+            entry_usd = exiting_trade_usd - order.usd
+
+            message += (
+                f"\nsold {order.btc:,.6f} BTC"
+                f"\nearned ${order.usd:,.8f}"
             )
 
         else:
             raise RuntimeError("Trade exit selected with zero USD delta")
 
-        price = result.price
+        order_price = order.price
+        closed_trade_usd = order_price * trade_to_exit.btc_amount
 
-        exit(session, trade_to_exit, usd, price, date)
-        company = update_company(session, usd, -btc)
+        record_trade_exit(session, trade_to_exit, closed_trade_usd, order_price, traded_at)
+        company = update_company(session, closed_trade_usd, -trade_to_exit.btc_amount)
 
     else:
-        result = buy_btc(entry_usd)
-        btc = result.btc
-        usd = result.usd
-        price = result.price
+        order = buy_btc(planned_entry_usd)
+        entry_btc = order.btc
+        entry_usd = order.usd
+        order_price = order.price
 
-        msg += (
-            f"\nbought {btc:,.6f} BTC"
-            f"\nspent ${usd:,.8f}"
+        message += (
+            f"\nbought {entry_btc:,.6f} BTC"
+            f"\nspent ${entry_usd:,.8f}"
         )
 
-    enter(session, btc, usd, price, date)
-    company = update_company(session, -usd, btc)
+    record_trade_entry(session, entry_btc, entry_usd, order_price, traded_at)
+    company = update_company(session, -entry_usd, entry_btc)
 
-    current_value = company.btc * exit_price
-    msg += (
+    current_btc_value = company.btc * sell_price
+    message += (
         f"\n\nBalance: ${company.balance:,.2f}"
-        f"\nBTC price: ${exit_price:,.2f}"
+        f"\nBTC price: ${sell_price:,.2f}"
         f"\nOwned: {company.btc:.8f} BTC"
-        f"\nValue: ${current_value:,.2f}"
-        f"\nProfit/Loss: ${current_value + company.balance:,.2f}"
+        f"\nValue: ${current_btc_value:,.2f}"
+        f"\nProfit/Loss: ${current_btc_value + company.balance:,.2f}"
     )
 
-    return msg
+    return message

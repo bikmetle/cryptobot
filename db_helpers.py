@@ -10,16 +10,16 @@ from utils import is_price_above_compound_interest, is_usd_delta_above_min_platf
 
 def enter(
     session: Session,
-    btc: Decimal,
-    usd: Decimal,
-    price: Decimal,
-    entered_at: datetime,
+    entry_btc: Decimal,
+    entry_usd: Decimal,
+    order_price: Decimal,
+    traded_at: datetime,
 ) -> BitcoinTrade:
     trade = BitcoinTrade(
-        btc_amount=btc,
-        entry_usd_amount=usd,
-        entry_price=price,
-        entered_at=entered_at,
+        btc_amount=entry_btc,
+        entry_usd_amount=entry_usd,
+        entry_price=order_price,
+        entered_at=traded_at,
     )
 
     session.add(trade)
@@ -45,9 +45,9 @@ def update_company(session: Session, usd_amount: Decimal, btc: Decimal) -> Compa
     return company
 
 
-def exit(session: Session, trade: BitcoinTrade,  usd: Decimal, price: Decimal, exited_at: datetime) -> BitcoinTrade:
-    trade.exit_usd_amount=usd
-    trade.exit_price=price
+def exit(session: Session, trade: BitcoinTrade, closed_trade_usd:Decimal, order_price: Decimal, exited_at: datetime) -> BitcoinTrade:
+    trade.exit_usd_amount=closed_trade_usd
+    trade.exit_price=order_price
     trade.exited_at=exited_at
 
     session.commit()
@@ -71,20 +71,19 @@ def get_company(session: Session) -> Company:
 
     return company
 
-
-def get_trade_to_exit(session: Session, price: Decimal, entry_usd: Decimal, exited_at: datetime) -> BitcoinTrade | None:
+def get_trade_to_exit(session: Session, sell_price: Decimal, planned_entry_usd: Decimal, traded_at: datetime) -> BitcoinTrade | None:
     trades = session.scalars(
         select(BitcoinTrade)
-        .where(BitcoinTrade.entry_price <= price)
+        .where(BitcoinTrade.entry_price <= sell_price)
         .where(BitcoinTrade.exit_price.is_(None))
         .order_by(BitcoinTrade.entered_at.asc(), BitcoinTrade.id.asc())
     ).all()
 
     for trade in trades:
-        if not is_price_above_compound_interest(price, trade, exited_at):
+        if not is_price_above_compound_interest(sell_price, trade, traded_at):
             continue
 
-        if not is_usd_delta_above_min_platform_usd(entry_usd, price, trade):
+        if not is_usd_delta_above_min_platform_usd(planned_entry_usd, sell_price, trade):
             continue
 
         return trade

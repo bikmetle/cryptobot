@@ -15,18 +15,17 @@ def _to_decimal(value: float | int | str | Decimal | None) -> Decimal:
     return Decimal(str(value))
 
 
-def is_price_above_compound_interest(current_price, trade: "BitcoinTrade", exited_at: date):
-    # TODO exited_at = date.now()
-    days = (exited_at - trade.entered_at.date()).days
+def is_price_above_compound_interest(sell_price, trade: "BitcoinTrade", traded_at: date):
+    days = (traded_at - trade.entered_at.date()).days
     years = (days + 364) // 365
     target_price = trade.entry_price * (1 + _to_decimal(INTEREST) / 100) ** years
 
-    return current_price > target_price
+    return sell_price > target_price
 
 
-def is_usd_delta_above_min_platform_usd(entry_usd: Decimal, exit_price: Decimal, trade: "BitcoinTrade"):
-    exit_usd = exit_price*trade.btc_amount
-    usd_delta = entry_usd - exit_usd
+def is_usd_delta_above_min_platform_usd(planned_entry_usd: Decimal, sell_price: Decimal, trade: "BitcoinTrade"):
+    exit_usd = sell_price*trade.btc_amount
+    usd_delta = planned_entry_usd - exit_usd
 
     return abs(usd_delta) > _to_decimal(MIN_PLATFORM_USD)
 

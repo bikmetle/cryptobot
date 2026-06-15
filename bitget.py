@@ -147,9 +147,9 @@ def _wait_for_fill(order_id):
 
 def get_btc_prices():
     ticker = _ticker()
-    entry_price = _to_decimal(ticker["askPr"] or ticker["lastPr"])
-    exit_price = _to_decimal(ticker["bidPr"] or ticker["lastPr"])
-    return entry_price, exit_price
+    buy_price = _to_decimal(ticker["askPr"] or ticker["lastPr"])
+    sell_price = _to_decimal(ticker["bidPr"] or ticker["lastPr"])
+    return buy_price, sell_price
 
 
 def buy_btc(usd_amount):
