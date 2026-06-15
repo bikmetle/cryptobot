@@ -30,10 +30,9 @@ def enter(
     return trade
 
 
-def update_company(session: Session, usd_amount: Decimal, btc: Decimal, tg_group_id: int) -> Company:
+def update_company(session: Session, usd_amount: Decimal, btc: Decimal) -> Company:
     company = session.scalar(
         select(Company)
-        .where(Company.tg_group_id == tg_group_id)
     )
 
     if company is None:
@@ -60,10 +59,9 @@ def exit(session: Session, trade: BitcoinTrade,  price: Decimal, exited_at: date
     return trade
 
 
-def get_company(session: Session, company_id: int) -> Company:
+def get_company(session: Session) -> Company:
     company = session.scalar(
         select(Company)
-        .where(Company.tg_group_id == company_id)
     )
 
     if company is None:
