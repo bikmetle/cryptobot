@@ -1,0 +1,10 @@
+services:
+  cryptobot:
+    build: .
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: sqlite:////data/cryptobot.db
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

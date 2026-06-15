@@ -31,7 +31,7 @@ def trade(session):
                 f"\nspent ${order.usd:,.8f}"
             )
 
-        elif usd_needed_for_entry < 0:
+        else:
             btc_to_sell = exiting_trade_btc - planned_entry_btc
             order = sell_btc(btc_to_sell)
             entry_btc = exiting_trade_btc - order.btc
@@ -41,9 +41,6 @@ def trade(session):
                 f"\nsold {order.btc:,.6f} BTC"
                 f"\nearned ${order.usd:,.8f}"
             )
-
-        else:
-            raise RuntimeError("Trade exit selected with zero USD delta")
 
         order_price = order.price
         closed_trade_usd = order_price * trade_to_exit.btc_amount

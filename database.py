@@ -1,12 +1,13 @@
 from datetime import datetime
 from decimal import Decimal
+import os
 from sqlalchemy import DateTime, Numeric
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 
-DATABASE_URL = "sqlite:///cryptobot.db"
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///cryptobot.db")
 
 
 engine = create_engine(DATABASE_URL)

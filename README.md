@@ -68,6 +68,22 @@ python main.py
 
 The bot polls Telegram commands and also starts a background task that runs the trading cycle once per day at midnight UTC.
 
+## Running With Docker
+
+Build and start the bot with Docker Compose:
+
+```bash
+docker compose up --build -d
+```
+
+The Compose setup reads `.env` from the project root and stores the SQLite database in `./data/cryptobot.db` on your machine, mounted inside the container at `/data/cryptobot.db`. On startup, the container runs `alembic upgrade head` before starting the bot.
+
+To stop the bot:
+
+```bash
+docker compose down
+```
+
 ## Telegram Commands
 
 - `/start`: basic bot response.

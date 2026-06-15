@@ -1,0 +1,12 @@
+.agents/
+.codex/
+.git/
+.pytest_cache/
+.ruff_cache/
+.venv/
+__pycache__/
+*.db
+*.log
+.env
+.env.*
+!.env.example
