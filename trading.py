@@ -1,6 +1,5 @@
-from datetime import datetime, timezone
-# from bitget import buy_btc, get_btc_prices, sell_btc
-from bitget_mock import buy_btc, get_btc_prices, sell_btc
+from bitget import buy_btc, get_btc_prices, sell_btc
+# from bitget_mock import buy_btc, get_btc_prices, sell_btc
 from db_helpers import record_trade_entry
 from db_helpers import record_trade_exit
 from db_helpers import get_company, get_trade_to_exit, update_company
