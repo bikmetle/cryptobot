@@ -1,11 +1,10 @@
 import asyncio
-from datetime import datetime, time, timedelta, timezone
+from datetime import datetime, time, timedelta
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
-from consts import ADMIN_TG_ID, BOT_TOKEN, GROUP_TG_ID
+from consts import ADMIN_TG_ID, BOT_TOKEN, GROUP_TG_ID, TZINFO
 from database import SessionLocal
-from db_helpers import get_company
 from trading import trade
 
 dp = Dispatcher()
@@ -27,37 +26,33 @@ async def get_id(message: Message) -> None:
     )
 
 
-async def daily_trade(bot: Bot, group_tg_id: str, admin_tg_id: str) -> None:
+async def daily_trade(bot: Bot) -> None:
     while True:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(TZINFO)
         next_run = (
-            datetime.combine(now.date(), time.min, tzinfo=timezone.utc)
+            datetime.combine(now.date(), time.min, tzinfo=TZINFO)
             + timedelta(days=1)
         )
 
         await asyncio.sleep((next_run - now).total_seconds())
         try:
             with SessionLocal() as session:
-                msg = trade(session)
-            await bot.send_message(group_tg_id, msg)
+                msg = trade(session, next_run)
+            if not GROUP_TG_ID:
+                continue
+            await bot.send_message(GROUP_TG_ID, msg)
         except Exception as e:
-            await bot.send_message(admin_tg_id, f"daily trade error:\n{e}\n#error")
+            if not ADMIN_TG_ID:
+                continue
+            await bot.send_message(ADMIN_TG_ID, f"daily trade error:\n{e}\n#error")
 
 
 async def main() -> None:
     if not BOT_TOKEN:
         raise RuntimeError("BOT_TOKEN is not set")
 
-    group_tg_id = GROUP_TG_ID
-    if not group_tg_id:
-        raise RuntimeError("GROUP_TG_ID is not set")
-
-    admin_tg_id = ADMIN_TG_ID
-    if not admin_tg_id:
-        raise RuntimeError("ADMIN_TG_ID is not set")
-
     bot = Bot(token=BOT_TOKEN)
-    daily_task = asyncio.create_task(daily_trade(bot, group_tg_id, admin_tg_id))
+    daily_task = asyncio.create_task(daily_trade(bot))
 
     try:
         await dp.start_polling(bot)

@@ -1,8 +1,8 @@
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from consts import INFLATION, INTEREST, DAILY_BUY_USD, MIN_PLATFORM_USD
+from consts import INFLATION, INTEREST, DAILY_BUY_USD, MIN_PLATFORM_USD, TZINFO
 
 if TYPE_CHECKING:
     from database import Company
@@ -15,8 +15,15 @@ def _to_decimal(value: float | int | str | Decimal | None) -> Decimal:
     return Decimal(str(value))
 
 
-def is_price_above_compound_interest(sell_price, trade: "BitcoinTrade", traded_at: date):
-    days = (traded_at - trade.entered_at.date()).days
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=TZINFO)
+
+    return value.astimezone(TZINFO)
+
+
+def is_price_above_compound_interest(sell_price, trade: "BitcoinTrade", traded_at: datetime):
+    days = (_as_utc(traded_at) - _as_utc(trade.entered_at)).days
     years = (days + 364) // 365
     target_price = trade.entry_price * (1 + _to_decimal(INTEREST) / 100) ** years
 
@@ -32,9 +39,9 @@ def is_usd_delta_above_min_platform_usd(planned_entry_usd: Decimal, sell_price: 
 
 def calculate_usd_amount(
     company: "Company",
-    current_date: date
+    traded_at: datetime
 ) -> Decimal:
-    days = (current_date - company.created_at.date()).days
+    days = (_as_utc(traded_at) - _as_utc(company.created_at)).days
     years = _to_decimal(days/365)
     usd_amount = _to_decimal(DAILY_BUY_USD) * (1 + _to_decimal(INFLATION) / 100) ** years
 

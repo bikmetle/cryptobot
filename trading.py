@@ -1,14 +1,13 @@
-from datetime import datetime, timezone
 from bitget import buy_btc, get_btc_prices, sell_btc
-from db_helpers import enter as record_trade_entry
-from db_helpers import exit as record_trade_exit
+# from bitget_mock import buy_btc, get_btc_prices, sell_btc
+from db_helpers import record_trade_entry
+from db_helpers import record_trade_exit
 from db_helpers import get_company, get_trade_to_exit, update_company
 from utils import calculate_usd_amount
 
 
-def trade(session):
+def trade(session, traded_at):
     message = ""
-    traded_at = datetime.now(timezone.utc)
     company = get_company(session)
     planned_entry_usd = calculate_usd_amount(company, traded_at)
     buy_price, sell_price = get_btc_prices()
