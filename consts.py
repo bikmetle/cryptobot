@@ -1,3 +1,4 @@
+from datetime import timezone
 import os
 from dotenv import load_dotenv
 
@@ -16,3 +17,5 @@ DAILY_BUY_USD = os.getenv("DAILY_BUY_USD")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 GROUP_TG_ID = os.getenv("GROUP_TG_ID")
 ADMIN_TG_ID = os.getenv("ADMIN_TG_ID")
+
+TZINFO=timezone.utc

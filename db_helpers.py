@@ -4,11 +4,12 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from consts import TZINFO
 from database import BitcoinTrade, Company
 from utils import is_price_above_compound_interest, is_usd_delta_above_min_platform_usd
 
 
-def enter(
+def record_trade_entry(
     session: Session,
     entry_btc: Decimal,
     entry_usd: Decimal,
@@ -45,7 +46,7 @@ def update_company(session: Session, usd_amount: Decimal, btc: Decimal) -> Compa
     return company
 
 
-def exit(session: Session, trade: BitcoinTrade, closed_trade_usd:Decimal, order_price: Decimal, exited_at: datetime) -> BitcoinTrade:
+def record_trade_exit(session: Session, trade: BitcoinTrade, closed_trade_usd:Decimal, order_price: Decimal, exited_at: datetime) -> BitcoinTrade:
     trade.exit_usd_amount=closed_trade_usd
     trade.exit_price=order_price
     trade.exited_at=exited_at
@@ -63,7 +64,7 @@ def get_company(session: Session) -> Company:
 
     if company is None:
         company = Company(
-            created_at = datetime.now()
+            created_at = datetime.now(TZINFO)
         )
 
         session.add(company)

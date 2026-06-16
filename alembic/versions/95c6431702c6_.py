@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 0a7a29b5b575
+Revision ID: 95c6431702c6
 Revises: 
-Create Date: 2026-06-15 14:21:51.936950
+Create Date: 2026-06-16 10:02:56.485672
 """
 
 from typing import Sequence, Union
@@ -11,7 +11,7 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = '0a7a29b5b575'
+revision: str = '95c6431702c6'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,7 +23,7 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('balance', sa.Numeric(precision=18, scale=8), nullable=False),
     sa.Column('btc', sa.Numeric(precision=18, scale=6), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('trades',
@@ -31,10 +31,10 @@ def upgrade() -> None:
     sa.Column('btc_amount', sa.Numeric(precision=18, scale=6), nullable=False),
     sa.Column('entry_price', sa.Numeric(precision=18, scale=2), nullable=False),
     sa.Column('entry_usd_amount', sa.Numeric(precision=18, scale=8), nullable=False),
-    sa.Column('entered_at', sa.DateTime(), nullable=False),
+    sa.Column('entered_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('exit_price', sa.Numeric(precision=18, scale=2), nullable=True),
     sa.Column('exit_usd_amount', sa.Numeric(precision=18, scale=8), nullable=True),
-    sa.Column('exited_at', sa.DateTime(), nullable=True),
+    sa.Column('exited_at', sa.DateTime(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
