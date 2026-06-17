@@ -65,7 +65,7 @@ def trade(session, traded_at):
     message += (
         f"\n\nBalance: ${company.balance:,.2f}"
         f"\nBTC price: ${sell_price:,.2f}"
-        f"\nOwned: {company.btc:.8f} BTC"
+        f"\nOwned: {company.btc:.6f} BTC"
         f"\nValue: ${current_btc_value:,.2f}"
         f"\nProfit/Loss: ${current_btc_value + company.balance:,.2f}"
     )
