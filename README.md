@@ -88,7 +88,6 @@ docker compose down
 
 - `/start`: basic bot response.
 - `/id`: returns your Telegram user ID and the current chat ID.
-- `/init`: initializes the local company/balance record when called from a non-private chat.
 
 ## Visualization
 
