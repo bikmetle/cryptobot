@@ -27,28 +27,22 @@ async def get_id(message: Message) -> None:
 
 
 @dp.message(Command("trade"))
-async def manually_trade(message: Message, bot: Bot) -> None:
+async def manually_trade(message: Message) -> None:
+    only ADMIN_TG_ID can manually trade
     if message.from_user is None:
-        return
-
-    if not ADMIN_TG_ID:
-        await message.answer("ADMIN_TG_ID is not configured.")
-        return
-
-    if str(message.from_user.id) != ADMIN_TG_ID:
-        await message.answer("You are not authorized to run a manual trade.")
+        await message.answer(f"Chat ID: {message.chat.id}")
         return
 
     try:
         with SessionLocal() as session:
-            msg = trade(session, datetime.now(TZINFO))
-
-        if GROUP_TG_ID:
-            await bot.send_message(GROUP_TG_ID, msg)
-        else:
-            await message.answer(msg)
+            msg = trade(session, next_run)
+        if not GROUP_TG_ID:
+            continue
+        await bot.send_message(GROUP_TG_ID, msg)
     except Exception as e:
-        await message.answer(f"Manual trade error:\n{e}\n#error")
+        if not ADMIN_TG_ID:
+            continue
+        await bot.send_message(ADMIN_TG_ID, f"daily trade error:\n{e}\n#error")
 
 
 async def daily_trade(bot: Bot) -> None:
