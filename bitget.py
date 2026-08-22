@@ -50,8 +50,26 @@ def _decimal_str(value, precision=None):
 
 def _check_response(payload):
     if payload.get("code") != "00000":
-        raise RuntimeError(f"Bitget API error: {payload.get('msg', payload)}")
+        code = payload.get("code", "unknown")
+        message = payload.get("msg", payload)
+        raise RuntimeError(f"Bitget API error {code}: {message}")
     return payload["data"]
+
+
+def _response_data(response):
+    try:
+        payload = response.json()
+    except requests.exceptions.JSONDecodeError:
+        response.raise_for_status()
+        raise RuntimeError("Bitget returned an invalid JSON response")
+
+    # Bitget includes its useful API error code and message in the response
+    # body, including for HTTP 400 responses.
+    if isinstance(payload, dict) and "code" in payload:
+        return _check_response(payload)
+
+    response.raise_for_status()
+    raise RuntimeError(f"Unexpected Bitget API response: {payload}")
 
 
 def _signature(secret_key: str, timestamp, method, path, query_string="", body=""):
@@ -95,8 +113,7 @@ def _get(path, params=None, signed=False):
         headers=headers,
         timeout=TIMEOUT,
     )
-    response.raise_for_status()
-    return _check_response(response.json())
+    return _response_data(response)
 
 
 def _post(path, payload):
@@ -107,8 +124,7 @@ def _post(path, payload):
         headers=_headers("POST", path, body=body),
         timeout=TIMEOUT,
     )
-    response.raise_for_status()
-    return _check_response(response.json())
+    return _response_data(response)
 
 
 def _ticker():
@@ -125,6 +141,7 @@ def _place_market_order(side, size):
             "symbol": SYMBOL,
             "side": side,
             "orderType": "market",
+            "force": "gtc",
             "size": size,
         },
     )
