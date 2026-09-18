@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 import requests
 
 from consts import API_KEY, PASSPHRASE, SECRET_KEY
+from trading_exceptions import LessThanMinimumAmountException
 
 BASE_URL = "https://api.bitget.com"
 SYMBOL = "BTCUSDT"
@@ -49,10 +50,14 @@ def _decimal_str(value, precision=None):
 
 
 def _check_response(payload):
+    if payload.get("code") == "45110":
+        raise LessThanMinimumAmountException()
+
     if payload.get("code") != "00000":
         code = payload.get("code", "unknown")
         message = payload.get("msg", payload)
         raise RuntimeError(f"Bitget API error {code}: {message}")
+
     return payload["data"]
 
 
