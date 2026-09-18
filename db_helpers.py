@@ -24,8 +24,6 @@ def record_trade_entry(
     )
 
     session.add(trade)
-    session.commit()
-    session.refresh(trade)
 
     return trade
 
@@ -40,8 +38,6 @@ def update_company(session: Session, usd_amount: Decimal, btc: Decimal) -> Compa
 
     company.balance += usd_amount
     company.btc += btc
-    session.commit()
-    session.refresh(company)
 
     return company
 
@@ -51,8 +47,6 @@ def record_trade_exit(session: Session, trade: BitcoinTrade, closed_trade_usd:De
     trade.exit_price=order_price
     trade.exited_at=exited_at
 
-    session.commit()
-    session.refresh(trade)
 
     return trade
 
@@ -68,7 +62,7 @@ def get_company(session: Session) -> Company:
         )
 
         session.add(company)
-        session.commit()
+        session.flush()
 
     return company
 

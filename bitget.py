@@ -51,7 +51,9 @@ def _decimal_str(value, precision=None):
 
 def _check_response(payload):
     if payload.get("code") == "45110":
-        raise LessThanMinimumAmountException()
+        raise LessThanMinimumAmountException(
+            f"Bitget API error 45110: {payload.get('msg', payload)}"
+        )
 
     if payload.get("code") != "00000":
         code = payload.get("code", "unknown")
