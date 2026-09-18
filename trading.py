@@ -1,6 +1,7 @@
 import logging
 
 from bitget import buy_btc, get_btc_prices, sell_btc
+# if env==test:
 # from bitget_mock import buy_btc, get_btc_prices, sell_btc
 from db_helpers import record_trade_entry
 from db_helpers import record_trade_exit
