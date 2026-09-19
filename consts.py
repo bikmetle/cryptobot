@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+ENV = os.getenv("ENV")
+
 PASSPHRASE = os.getenv("PASSPHRASE")
 API_KEY = os.getenv("API_KEY")
 SECRET_KEY = os.getenv("SECRET_KEY")

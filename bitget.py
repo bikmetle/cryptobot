@@ -9,7 +9,8 @@ from urllib.parse import urlencode
 
 import requests
 
-from consts import API_KEY, PASSPHRASE, SECRET_KEY
+from consts import API_KEY, PASSPHRASE, SECRET_KEY, ENV
+from trading_exceptions import LessThanMinimumAmountException
 
 BASE_URL = "https://api.bitget.com"
 SYMBOL = "BTCUSDT"
@@ -17,6 +18,7 @@ QUOTE_PRECISION=8
 QUANTITY_PRECISION=6
 TIMEOUT = 10
 
+assert ENV == "PROD"
 
 # def _symbol_info():
 #     data = _get("/api/v2/spot/public/symbols", {"symbol": SYMBOL})
@@ -49,10 +51,16 @@ def _decimal_str(value, precision=None):
 
 
 def _check_response(payload):
+    if payload.get("code") == "45110":
+        raise LessThanMinimumAmountException(
+            f"Bitget API error 45110: {payload.get('msg', payload)}"
+        )
+
     if payload.get("code") != "00000":
         code = payload.get("code", "unknown")
         message = payload.get("msg", payload)
         raise RuntimeError(f"Bitget API error {code}: {message}")
+
     return payload["data"]
 
 
