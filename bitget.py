@@ -9,7 +9,7 @@ from urllib.parse import urlencode
 
 import requests
 
-from consts import API_KEY, PASSPHRASE, SECRET_KEY
+from consts import API_KEY, PASSPHRASE, SECRET_KEY, ENV
 from trading_exceptions import LessThanMinimumAmountException
 
 BASE_URL = "https://api.bitget.com"
@@ -18,6 +18,7 @@ QUOTE_PRECISION=8
 QUANTITY_PRECISION=6
 TIMEOUT = 10
 
+assert ENV == "PROD"
 
 # def _symbol_info():
 #     data = _get("/api/v2/spot/public/symbols", {"symbol": SYMBOL})
