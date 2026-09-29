@@ -1,14 +1,16 @@
 import logging
 
-from bitget import buy_btc, get_btc_prices, sell_btc
-# if env==test:
-# from bitget_mock import buy_btc, get_btc_prices, sell_btc
+from consts import ENV, Environment
 from db_helpers import record_trade_entry
 from db_helpers import record_trade_exit
 from db_helpers import get_company, get_trades_to_exit, update_company
 from trading_exceptions import ExitFailedException, LessThanMinimumAmountException
 from utils import calculate_usd_amount
 
+if ENV == Environment.PROD:
+    from bitget import buy_btc, get_btc_prices, sell_btc
+else:
+    from bitget_mock import buy_btc, get_btc_prices, sell_btc
 
 logger = logging.getLogger(__name__)
 

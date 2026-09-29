@@ -9,7 +9,7 @@ from urllib.parse import urlencode
 
 import requests
 
-from consts import API_KEY, PASSPHRASE, SECRET_KEY, ENV
+from consts import API_KEY, PASSPHRASE, SECRET_KEY, ENV, Environment
 from trading_exceptions import LessThanMinimumAmountException
 
 BASE_URL = "https://api.bitget.com"
@@ -17,8 +17,6 @@ SYMBOL = "BTCUSDT"
 QUOTE_PRECISION=8
 QUANTITY_PRECISION=6
 TIMEOUT = 10
-
-assert ENV == "PROD"
 
 # def _symbol_info():
 #     data = _get("/api/v2/spot/public/symbols", {"symbol": SYMBOL})
@@ -112,6 +110,7 @@ def _headers(method, path, query_string="", body=""):
 
 
 def _get(path, params=None, signed=False):
+    assert ENV == Environment.PROD, "The real Bitget client requires ENV=PROD"
     params = params or {}
     query_string = urlencode(params)
     headers = _headers("GET", path, query_string) if signed else None
@@ -125,6 +124,7 @@ def _get(path, params=None, signed=False):
 
 
 def _post(path, payload):
+    assert ENV == Environment.PROD, "The real Bitget client requires ENV=PROD"
     body = json.dumps(payload, separators=(",", ":"))
     response = requests.post(
         f"{BASE_URL}{path}",
