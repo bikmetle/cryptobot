@@ -1,9 +1,18 @@
 from datetime import timezone
+from enum import StrEnum
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
+
+class Environment(StrEnum):
+    PROD = "PROD"
+    DEV = "DEV"
+    TEST = "TEST"
+
+
+ENV = Environment(os.getenv("ENV", Environment.DEV))
 
 PASSPHRASE = os.getenv("PASSPHRASE")
 API_KEY = os.getenv("API_KEY")

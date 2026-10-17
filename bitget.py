@@ -9,14 +9,14 @@ from urllib.parse import urlencode
 
 import requests
 
-from consts import API_KEY, PASSPHRASE, SECRET_KEY
+from consts import API_KEY, PASSPHRASE, SECRET_KEY, ENV, Environment
+from trading_exceptions import LessThanMinimumAmountException
 
 BASE_URL = "https://api.bitget.com"
 SYMBOL = "BTCUSDT"
 QUOTE_PRECISION=8
 QUANTITY_PRECISION=6
 TIMEOUT = 10
-
 
 # def _symbol_info():
 #     data = _get("/api/v2/spot/public/symbols", {"symbol": SYMBOL})
@@ -49,10 +49,16 @@ def _decimal_str(value, precision=None):
 
 
 def _check_response(payload):
+    if payload.get("code") == "45110":
+        raise LessThanMinimumAmountException(
+            f"Bitget API error 45110: {payload.get('msg', payload)}"
+        )
+
     if payload.get("code") != "00000":
         code = payload.get("code", "unknown")
         message = payload.get("msg", payload)
         raise RuntimeError(f"Bitget API error {code}: {message}")
+
     return payload["data"]
 
 
@@ -104,6 +110,7 @@ def _headers(method, path, query_string="", body=""):
 
 
 def _get(path, params=None, signed=False):
+    assert ENV == Environment.PROD, "The real Bitget client requires ENV=PROD"
     params = params or {}
     query_string = urlencode(params)
     headers = _headers("GET", path, query_string) if signed else None
@@ -117,6 +124,7 @@ def _get(path, params=None, signed=False):
 
 
 def _post(path, payload):
+    assert ENV == Environment.PROD, "The real Bitget client requires ENV=PROD"
     body = json.dumps(payload, separators=(",", ":"))
     response = requests.post(
         f"{BASE_URL}{path}",
