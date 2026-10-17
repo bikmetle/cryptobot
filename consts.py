@@ -19,7 +19,7 @@ class Exchange(StrEnum):
     BINANCE = "binance"
 
 
-EXCHANGE = Exchange(os.getenv("EXCHANGE", Exchange.BITGET).strip().lower())
+EXCHANGE = Exchange(os.getenv("EXCHANGE", Exchange.BINANCE).strip().lower())
 
 BITGET_PASSPHRASE = os.getenv("BITGET_PASSPHRASE")
 BITGET_API_KEY = os.getenv("BITGET_API_KEY")

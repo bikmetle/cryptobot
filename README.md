@@ -34,11 +34,11 @@ Create a `.env` file with the required values:
 
 ```env
 ENV=PROD
-EXCHANGE=bitget
+EXCHANGE=binance
 
-PASSPHRASE=
-API_KEY=
-SECRET_KEY=
+BITGET_PASSPHRASE=
+BITGET_API_KEY=
+BITGET_SECRET_KEY=
 
 BINANCE_API_KEY=
 BINANCE_SECRET_KEY=
@@ -56,8 +56,8 @@ DAILY_BUY_USD=
 ### Environment Variables
 
 - `ENV`: `PROD` uses the selected real exchange; `DEV` and `TEST` use simulated orders.
-- `EXCHANGE`: `bitget` (default) or `binance`, case insensitive.
-- `PASSPHRASE`, `API_KEY`, `SECRET_KEY`: Bitget API credentials. Alternatively use `BITGET_PASSPHRASE`, `BITGET_API_KEY`, and `BITGET_SECRET_KEY`; these take precedence over the original names.
+- `EXCHANGE`: `binance` (default) or `bitget`, case insensitive.
+- `BITGET_PASSPHRASE`, `BITGET_API_KEY`, `SECRET_KEY`: Bitget API credentials.
 - `BINANCE_API_KEY`, `BINANCE_SECRET_KEY`: Binance HMAC API credentials with Spot trading enabled; no passphrase is needed.
 - `BOT_TOKEN`: Telegram bot token.
 - `GROUP_TG_ID`: Telegram group or channel ID where daily results are posted.
