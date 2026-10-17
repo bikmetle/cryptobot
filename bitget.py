@@ -3,7 +3,6 @@ import hashlib
 import hmac
 import json
 import time
-from dataclasses import dataclass
 from decimal import Decimal, ROUND_DOWN
 from urllib.parse import urlencode
 
@@ -11,6 +10,7 @@ import requests
 
 from consts import API_KEY, PASSPHRASE, SECRET_KEY, ENV, Environment
 from trading_exceptions import LessThanMinimumAmountException
+from exchange_types import BtcOrderResult
 
 BASE_URL = "https://api.bitget.com"
 SYMBOL = "BTCUSDT"
@@ -27,13 +27,6 @@ TIMEOUT = 10
     # symbol = _symbol_info()
     # quote_precision = int(symbol["quotePrecision"])
     # quantity_precision = int(symbol["quantityPrecision"])
-
-
-@dataclass(frozen=True)
-class BtcOrderResult:
-    usd: Decimal
-    btc: Decimal
-    price: Decimal
 
 
 def _to_decimal(value):

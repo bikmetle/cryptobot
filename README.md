@@ -21,7 +21,7 @@ In other words, the bot tries to keep buying consistently while closing older po
 
 ## What The Bot Does
 
-- Places BTC/USDT spot market orders through Bitget.
+- Places BTC/USDT spot market orders through Bitget or Binance.
 - Runs one scheduled trading cycle per day.
 - Stores trades and balances in a local SQLite database.
 - Sends daily trade results to a Telegram group.
@@ -33,9 +33,15 @@ In other words, the bot tries to keep buying consistently while closing older po
 Create a `.env` file with the required values:
 
 ```env
+ENV=PROD
+EXCHANGE=bitget
+
 PASSPHRASE=
 API_KEY=
 SECRET_KEY=
+
+BINANCE_API_KEY=
+BINANCE_SECRET_KEY=
 
 BOT_TOKEN=
 GROUP_TG_ID=
@@ -49,7 +55,10 @@ DAILY_BUY_USD=
 
 ### Environment Variables
 
-- `PASSPHRASE`, `API_KEY`, `SECRET_KEY`: Bitget API credentials.
+- `ENV`: `PROD` uses the selected real exchange; `DEV` and `TEST` use simulated orders.
+- `EXCHANGE`: `bitget` (default) or `binance`, case insensitive.
+- `PASSPHRASE`, `API_KEY`, `SECRET_KEY`: Bitget API credentials. Alternatively use `BITGET_PASSPHRASE`, `BITGET_API_KEY`, and `BITGET_SECRET_KEY`; these take precedence over the original names.
+- `BINANCE_API_KEY`, `BINANCE_SECRET_KEY`: Binance HMAC API credentials with Spot trading enabled; no passphrase is needed.
 - `BOT_TOKEN`: Telegram bot token.
 - `GROUP_TG_ID`: Telegram group or channel ID where daily results are posted.
 - `ADMIN_TG_ID`: Telegram user ID that receives error messages.
@@ -57,6 +66,12 @@ DAILY_BUY_USD=
 - `INFLATION`: Yearly increase applied to the daily buy amount.
 - `MIN_PLATFORM_USD`: Minimum USD difference required before placing an order.
 - `DAILY_BUY_USD`: Base amount to invest each day.
+
+To switch exchanges, save both sets of credentials, change `EXCHANGE` in `.env`, and restart the bot. With Docker Compose, run `docker compose up -d --force-recreate`. Existing Bitget configurations continue to work without changes.
+
+Binance reads BTC/USDT precision and quantity filters from the exchange and rounds order amounts down. Its current minimum notional rules still apply; configure `MIN_PLATFORM_USD` and `DAILY_BUY_USD` accordingly. See the [Binance order documentation](https://developers.binance.com/docs/binance-spot-api-docs/rest-api/trading-endpoints) and [symbol filters](https://developers.binance.com/docs/binance-spot-api-docs/filters).
+
+Switching keeps the same local trade history and accounting. It does not transfer BTC or USDT between exchange accounts; fund the selected account to cover the positions tracked by the bot.
 
 ## Running
 
@@ -110,6 +125,6 @@ pip install matplotlib
 
 ## Risk Warning
 
-This project uses real market orders when connected to real Bitget credentials. Crypto prices can move quickly, market orders may fill at unexpected prices, and bugs or wrong configuration can lose money.
+This project uses real market orders when connected to real exchange credentials. Crypto prices can move quickly, market orders may fill at unexpected prices, and bugs or wrong configuration can lose money.
 
 Use small amounts, test carefully, and never run the bot with funds you cannot afford to lose.
