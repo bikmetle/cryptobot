@@ -90,6 +90,8 @@ def _place_market_order(side, size_name, size):
             return BtcOrderResult(usd=usd, btc=btc, price=usd / btc)
         if status in {"CANCELED", "REJECTED", "EXPIRED", "EXPIRED_IN_MATCH"}:
             raise RuntimeError(f"Binance order {order['orderId']} ended with {status}")
+        if attempt == MAX_RETRIES-1:
+            break
         time.sleep(1)
         order = _request(
             "GET", "/api/v3/order",
