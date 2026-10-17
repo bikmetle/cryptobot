@@ -15,6 +15,7 @@ from trading_exceptions import LessThanMinimumAmountException
 BASE_URL = "https://api.binance.com"
 SYMBOL = "BTCUSDT"
 TIMEOUT = 10
+MAX_RETRIES = 10
 
 
 def _response_data(response):
@@ -79,7 +80,7 @@ def _place_market_order(side, size_name, size):
          size_name: size, "newOrderRespType": "FULL"},
         signed=True,
     )
-    for attempt in range(11):
+    for attempt in range(MAX_RETRIES):
         status = order["status"]
         if status == "FILLED":
             btc = Decimal(order["executedQty"])
@@ -89,8 +90,6 @@ def _place_market_order(side, size_name, size):
             return BtcOrderResult(usd=usd, btc=btc, price=usd / btc)
         if status in {"CANCELED", "REJECTED", "EXPIRED", "EXPIRED_IN_MATCH"}:
             raise RuntimeError(f"Binance order {order['orderId']} ended with {status}")
-        if attempt == 10:
-            break
         time.sleep(1)
         order = _request(
             "GET", "/api/v3/order",
