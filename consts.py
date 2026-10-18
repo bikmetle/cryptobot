@@ -17,15 +17,19 @@ ENV = Environment(os.getenv("ENV", Environment.DEV))
 class Exchange(StrEnum):
     BITGET = "bitget"
     BINANCE = "binance"
+    BYBIT = "bybit"
 
 
-EXCHANGE = Exchange(os.getenv("EXCHANGE", Exchange.BINANCE).strip().lower())
+EXCHANGE = Exchange(os.getenv("EXCHANGE", Exchange.BYBIT).strip().lower())
 
 BITGET_PASSPHRASE = os.getenv("BITGET_PASSPHRASE")
 BITGET_API_KEY = os.getenv("BITGET_API_KEY")
 BITGET_SECRET_KEY = os.getenv("BITGET_SECRET_KEY")
 BINANCE_API_KEY = os.getenv("BINANCE_API_KEY")
 BINANCE_SECRET_KEY = os.getenv("BINANCE_SECRET_KEY")
+BYBIT_API_KEY = os.getenv("BYBIT_API_KEY")
+BYBIT_SECRET_KEY = os.getenv("BYBIT_SECRET_KEY")
+BYBIT_BASE_URL = os.getenv("BYBIT_BASE_URL", "https://api.bybit.com").rstrip("/")
 
 INTEREST = os.getenv("INTEREST")
 INFLATION = os.getenv("INFLATION")
