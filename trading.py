@@ -12,8 +12,10 @@ if ENV == Environment.PROD:
         from bybit import buy_btc, get_btc_prices, sell_btc
     elif EXCHANGE == Exchange.BINANCE:
         from binance import buy_btc, get_btc_prices, sell_btc
-    else:
+    elif EXCHANGE == Exchange.BITGET:
         from bitget import buy_btc, get_btc_prices, sell_btc
+    else:
+        raise NotImplemented()
 else:
     from bitget_mock import buy_btc, get_btc_prices, sell_btc
 
