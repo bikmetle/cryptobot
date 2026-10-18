@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from exchange_types import BtcOrderResult
 from decimal import Decimal, ROUND_DOWN
 
 BASE_URL = "https://api.bitget.com"
@@ -6,13 +6,6 @@ SYMBOL = "BTCUSDT"
 QUOTE_PRECISION=8
 QUANTITY_PRECISION=6
 TIMEOUT = 10
-
-
-@dataclass(frozen=True)
-class BtcOrderResult:
-    usd: Decimal
-    btc: Decimal
-    price: Decimal
 
 
 def _to_decimal(value):

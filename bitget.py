@@ -3,14 +3,14 @@ import hashlib
 import hmac
 import json
 import time
-from dataclasses import dataclass
 from decimal import Decimal, ROUND_DOWN
 from urllib.parse import urlencode
 
 import requests
 
-from consts import API_KEY, PASSPHRASE, SECRET_KEY, ENV, Environment
+from consts import BITGET_API_KEY, BITGET_PASSPHRASE, BITGET_SECRET_KEY, ENV, Environment
 from trading_exceptions import LessThanMinimumAmountException
+from exchange_types import BtcOrderResult
 
 BASE_URL = "https://api.bitget.com"
 SYMBOL = "BTCUSDT"
@@ -27,13 +27,6 @@ TIMEOUT = 10
     # symbol = _symbol_info()
     # quote_precision = int(symbol["quotePrecision"])
     # quantity_precision = int(symbol["quantityPrecision"])
-
-
-@dataclass(frozen=True)
-class BtcOrderResult:
-    usd: Decimal
-    btc: Decimal
-    price: Decimal
 
 
 def _to_decimal(value):
@@ -92,9 +85,9 @@ def _signature(secret_key: str, timestamp, method, path, query_string="", body="
 
 
 def _headers(method, path, query_string="", body=""):
-    api_key = API_KEY
-    secret_key = SECRET_KEY
-    passphrase = PASSPHRASE
+    api_key = BITGET_API_KEY
+    secret_key = BITGET_SECRET_KEY
+    passphrase = BITGET_PASSPHRASE
     if not api_key or not secret_key or not passphrase:
         raise RuntimeError("API_KEY, SECRET_KEY, and PASSPHRASE must be set")
 

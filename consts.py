@@ -14,9 +14,18 @@ class Environment(StrEnum):
 
 ENV = Environment(os.getenv("ENV", Environment.DEV))
 
-PASSPHRASE = os.getenv("PASSPHRASE")
-API_KEY = os.getenv("API_KEY")
-SECRET_KEY = os.getenv("SECRET_KEY")
+class Exchange(StrEnum):
+    BITGET = "bitget"
+    BINANCE = "binance"
+
+
+EXCHANGE = Exchange(os.getenv("EXCHANGE", Exchange.BINANCE).strip().lower())
+
+BITGET_PASSPHRASE = os.getenv("BITGET_PASSPHRASE")
+BITGET_API_KEY = os.getenv("BITGET_API_KEY")
+BITGET_SECRET_KEY = os.getenv("BITGET_SECRET_KEY")
+BINANCE_API_KEY = os.getenv("BINANCE_API_KEY")
+BINANCE_SECRET_KEY = os.getenv("BINANCE_SECRET_KEY")
 
 INTEREST = os.getenv("INTEREST")
 INFLATION = os.getenv("INFLATION")

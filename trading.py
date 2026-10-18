@@ -1,6 +1,6 @@
 import logging
 
-from consts import ENV, Environment
+from consts import ENV, EXCHANGE, Environment, Exchange
 from db_helpers import record_trade_entry
 from db_helpers import record_trade_exit
 from db_helpers import get_company, get_trades_to_exit, update_company
@@ -8,7 +8,10 @@ from trading_exceptions import ExitFailedException, LessThanMinimumAmountExcepti
 from utils import calculate_usd_amount
 
 if ENV == Environment.PROD:
-    from bitget import buy_btc, get_btc_prices, sell_btc
+    if EXCHANGE == Exchange.BINANCE:
+        from binance import buy_btc, get_btc_prices, sell_btc
+    else:
+        from bitget import buy_btc, get_btc_prices, sell_btc
 else:
     from bitget_mock import buy_btc, get_btc_prices, sell_btc
 
