@@ -56,7 +56,7 @@ def test_bybit_credentials_and_regional_endpoint_configuration():
 
 
 @pytest.mark.parametrize("prefixed", [False, True])
-def test_bitget_credentials_keep_legacy_compatibility(prefixed):
+def test_bitget_credentials_use_prefixed_variables(prefixed):
     env = dict(os.environ, PYTHON_DOTENV_DISABLED="1", API_KEY="legacy-key",
                SECRET_KEY="legacy-secret", PASSPHRASE="legacy-pass")
     for name in ("API_KEY", "SECRET_KEY", "PASSPHRASE"):
@@ -64,8 +64,8 @@ def test_bitget_credentials_keep_legacy_compatibility(prefixed):
         if prefixed:
             env[f"BITGET_{name}"] = "prefixed"
     result = subprocess.run(
-        [sys.executable, "-c", "from consts import API_KEY, SECRET_KEY, PASSPHRASE; print(API_KEY, SECRET_KEY, PASSPHRASE)"],
+        [sys.executable, "-c", "from consts import BITGET_API_KEY, BITGET_SECRET_KEY, BITGET_PASSPHRASE; print(BITGET_API_KEY, BITGET_SECRET_KEY, BITGET_PASSPHRASE)"],
         env=env, capture_output=True, text=True,
     )
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == ("prefixed prefixed prefixed" if prefixed else "legacy-key legacy-secret legacy-pass")
+    assert result.stdout.strip() == ("prefixed prefixed prefixed" if prefixed else "None None None")

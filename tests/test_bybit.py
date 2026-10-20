@@ -28,20 +28,13 @@ def response(result=None, **overrides):
     return Mock(json=Mock(return_value={"retCode": 0, "retMsg": "OK", "result": result or {}, **overrides}))
 
 
-def symbol_info(**rules):
-    return {"list": [{"symbol": "BTCUSDT", "status": "Trading", "lotSizeFilter": {
-        "basePrecision": "0.000001", "quotePrecision": "0.01", "minOrderAmt": "5",
-        "maxMarketOrderQty": "100", **rules,
-    }}]}
-
-
 def filled(**values):
     return {"list": [{"orderId": "123", "orderStatus": "Filled",
-                      "cumExecQty": "0.0001", "cumExecValue": "10", **values}]}
+                      "cumExecQty": "0.0001", "cumExecValue": "10", "cumFeeDetail": {}, **values}]}
 
 
 def prepare_order(client, *statuses):
-    client.side_effect = [response(symbol_info()), response({"orderId": "123"}),
+    client.side_effect = [response({"orderId": "123"}),
                           *[response(status) for status in (statuses or (filled(),))]]
 
 
@@ -55,13 +48,13 @@ def test_prices_use_ask_for_buy_and_bid_for_sell(client):
 def test_buy_spends_quote_and_signs_exact_body_and_query(client, monkeypatch):
     monkeypatch.setattr(bybit.time, "time", lambda: 1700000000)
     prepare_order(client)
-    order = bybit.buy_btc(D("10.129"))
+    order = bybit.buy_btc(D("10.12912349"))
     assert (order.usd, order.btc, order.price) == (D("10"), D("0.0001"), D("100000"))
-    post, get = client.call_args_list[1:]
+    post, get = client.call_args_list
     assert post.args == ("POST", bybit.BASE_URL + "/v5/order/create")
     assert json.loads(post.kwargs["data"]) == {
         "category": "spot", "symbol": "BTCUSDT", "side": "Buy", "orderType": "Market",
-        "qty": "10.12", "marketUnit": "quoteCoin", "isLeverage": 0,
+        "qty": "10.1291234", "marketUnit": "quoteCoin", "isLeverage": 0,
     }
     for call, field in ((post, "data"), (get, "params")):
         headers = call.kwargs["headers"]
@@ -78,23 +71,32 @@ def test_buy_spends_quote_and_signs_exact_body_and_query(client, monkeypatch):
 def test_sell_rounds_down_and_uses_base_coin(client):
     prepare_order(client)
     bybit.sell_btc(D("0.00010999"))
-    params = json.loads(client.call_args_list[1].kwargs["data"])
+    params = json.loads(client.call_args_list[0].kwargs["data"])
     assert (params["side"], params["marketUnit"], params["qty"]) == ("Sell", "baseCoin", "0.000109")
 
 
-@pytest.mark.parametrize("operation,amount", [("buy_btc", "0"), ("buy_btc", "4.999"), ("buy_btc", "-1"), ("sell_btc", "0.0000009"), ("sell_btc", "-1")])
+@pytest.mark.parametrize("operation,amount,fees,expected_btc,expected_usd", [
+    ("buy_btc", "10", {"BTC": "0.0000001"}, "0.0000999", "10"),
+    ("sell_btc", "0.0001", {"USDT": "0.01"}, "0.0001", "9.99"),
+])
+def test_fills_deduct_fees_in_the_charged_currency(client, operation, amount, fees, expected_btc, expected_usd):
+    prepare_order(client, filled(cumFeeDetail=fees))
+    order = getattr(bybit, operation)(D(amount))
+    assert (order.btc, order.usd) == (D(expected_btc), D(expected_usd))
+    assert order.price == D(expected_usd) / D(expected_btc)
+
+
+def test_positive_buy_below_old_minimum_is_submitted(client):
+    prepare_order(client, filled(cumExecValue="4.999"))
+    assert bybit.buy_btc(D("4.999")).usd == D("4.999")
+    assert json.loads(client.call_args_list[0].kwargs["data"])["qty"] == "4.999"
+
+
+@pytest.mark.parametrize("operation,amount", [("buy_btc", "0"), ("buy_btc", "0.00000009"), ("buy_btc", "-1"), ("sell_btc", "0.0000009"), ("sell_btc", "-1")])
 def test_small_orders_never_submit(client, operation, amount):
-    client.return_value = response(symbol_info())
     with pytest.raises(LessThanMinimumAmountException):
         getattr(bybit, operation)(D(amount))
-    assert client.call_count == 1
-
-
-def test_oversized_sell_never_submits(client):
-    client.return_value = response(symbol_info())
-    with pytest.raises(ValueError, match="maximum"):
-        bybit.sell_btc(101)
-    assert client.call_count == 1
+    client.assert_not_called()
 
 
 @pytest.mark.parametrize("code", [170136, 170140])
@@ -113,8 +115,8 @@ def test_other_api_errors_are_not_skipped(client):
 def test_empty_and_pending_orders_are_polled_without_resubmitting(client):
     prepare_order(client, {"list": []}, filled(orderStatus="New"), filled(orderStatus="PartiallyFilled"), filled())
     assert bybit.buy_btc(10).price == D("100000")
-    assert [c.args[0] for c in client.call_args_list] == ["GET", "POST", "GET", "GET", "GET", "GET"]
-    assert all(parse_qs(c.kwargs["params"])["orderId"] == ["123"] for c in client.call_args_list[2:])
+    assert [c.args[0] for c in client.call_args_list] == ["POST", "GET", "GET", "GET", "GET"]
+    assert all(parse_qs(c.kwargs["params"])["orderId"] == ["123"] for c in client.call_args_list[1:])
 
 
 @pytest.mark.parametrize("status", ["Cancelled", "Rejected", "PartiallyFilledCanceled", "Deactivated"])
@@ -122,7 +124,7 @@ def test_terminal_orders_raise_without_resubmitting(client, status):
     prepare_order(client, filled(orderStatus=status))
     with pytest.raises(RuntimeError, match=f"123 ended with {status}"):
         bybit.buy_btc(10)
-    assert client.call_count == 3
+    assert client.call_count == 2
 
 
 @pytest.mark.parametrize("btc,usd", [("0", "10"), ("0.0001", "0"), ("NaN", "10")])
@@ -135,22 +137,22 @@ def test_invalid_fills_are_not_recorded(client, btc, usd):
 def test_fill_on_final_retry_succeeds(client):
     prepare_order(client, *([filled(orderStatus="New")] * bybit.MAX_RETRIES), filled())
     assert bybit.buy_btc(10).btc == D("0.0001")
-    assert client.call_count == 2 + bybit.MAX_RETRIES + 1
+    assert client.call_count == 1 + bybit.MAX_RETRIES + 1
 
 
 def test_fill_timeout_never_resubmits(client):
     prepare_order(client, *([{"list": []}] * (bybit.MAX_RETRIES + 1)))
     with pytest.raises(RuntimeError, match="123 was not filled in time"):
         bybit.buy_btc(10)
-    assert client.call_count == 2 + bybit.MAX_RETRIES + 1
+    assert client.call_count == 1 + bybit.MAX_RETRIES + 1
     assert sum(c.args[0] == "POST" for c in client.call_args_list) == 1
 
 
 def test_submission_timeout_never_resubmits(client):
-    client.side_effect = [response(symbol_info()), requests.exceptions.Timeout("unknown execution status")]
+    client.side_effect = requests.exceptions.Timeout("unknown execution status")
     with pytest.raises(requests.exceptions.Timeout):
         bybit.buy_btc(10)
-    assert client.call_count == 2
+    assert client.call_count == 1
 
 
 @pytest.mark.parametrize("credential", ["BYBIT_API_KEY", "BYBIT_SECRET_KEY"])
@@ -189,8 +191,8 @@ def test_http_error_is_not_accepted(client):
         bybit.get_btc_prices()
 
 
-def test_unavailable_symbol_prevents_order(client):
+def test_symbol_info_rejects_unavailable_symbol(client):
     client.return_value = response({"list": []})
     with pytest.raises(RuntimeError, match="not available"):
-        bybit.buy_btc(10)
+        bybit._symbol_info()
     assert client.call_count == 1

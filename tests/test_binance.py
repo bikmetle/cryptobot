@@ -144,9 +144,10 @@ def test_timeout_does_not_resubmit_order(client):
 
 def test_fill_timeout_only_queries_existing_order(client, monkeypatch):
     monkeypatch.setattr(binance.time, "sleep", lambda _: None)
-    client.side_effect = [response(symbol_info())] + [response(filled(status="NEW")) for _ in range(11)]
+    client.side_effect = [response(symbol_info())] + [response(filled(status="NEW")) for _ in range(binance.MAX_RETRIES)]
     with pytest.raises(RuntimeError, match="123 was not filled in time"):
         binance.buy_btc(10)
+    assert client.call_count == 1 + binance.MAX_RETRIES
     assert sum(c.args[0] == "POST" for c in client.call_args_list) == 1
 
 
@@ -160,6 +161,8 @@ def test_zero_buy_never_places_order(client):
 def test_fill_on_final_poll_is_recorded(client, monkeypatch):
     monkeypatch.setattr(binance.time, "sleep", lambda _: None)
     client.side_effect = ([response(symbol_info())]
-                          + [response(filled(status="NEW")) for _ in range(10)]
+                          + [response(filled(status="NEW")) for _ in range(binance.MAX_RETRIES - 1)]
                           + [response(filled())])
     assert binance.buy_btc(10).btc == D("0.0001")
+    assert client.call_count == 1 + binance.MAX_RETRIES
+    assert sum(c.args[0] == "POST" for c in client.call_args_list) == 1
