@@ -11,6 +11,7 @@ import requests
 from consts import BITGET_API_KEY, BITGET_PASSPHRASE, BITGET_SECRET_KEY, ENV, Environment
 from trading_exceptions import LessThanMinimumAmountException
 from exchange_types import BtcOrderResult
+from utils import _decimal_str, _to_decimal
 
 BASE_URL = "https://api.bitget.com"
 SYMBOL = "BTCUSDT"
@@ -27,18 +28,6 @@ TIMEOUT = 10
     # symbol = _symbol_info()
     # quote_precision = int(symbol["quotePrecision"])
     # quantity_precision = int(symbol["quantityPrecision"])
-
-
-def _to_decimal(value):
-    return Decimal(str(value))
-
-
-def _decimal_str(value, precision=None):
-    value = _to_decimal(value)
-    if precision is not None:
-        step = Decimal("1").scaleb(-precision)
-        value = value.quantize(step, rounding=ROUND_DOWN)
-    return format(value.normalize(), "f")
 
 
 def _check_response(payload):

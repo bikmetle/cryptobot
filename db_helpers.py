@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+import logging
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -7,6 +8,8 @@ from sqlalchemy.orm import Session
 from consts import TZINFO
 from database import BitcoinTrade, Company
 from utils import is_price_above_compound_interest, is_usd_delta_above_min_platform_usd
+
+logger = logging.getLogger(__name__)
 
 
 def record_trade_entry(
@@ -42,11 +45,16 @@ def update_company(session: Session, usd_amount: Decimal, btc: Decimal) -> Compa
     return company
 
 
-def record_trade_exit(session: Session, trade: BitcoinTrade, closed_trade_usd:Decimal, order_price: Decimal, exited_at: datetime) -> BitcoinTrade:
+def record_trade_exit(
+    trade: BitcoinTrade, 
+    closed_trade_usd:Decimal, 
+    order_price: Decimal, 
+    exited_at: datetime
+) -> BitcoinTrade:
+
     trade.exit_usd_amount=closed_trade_usd
     trade.exit_price=order_price
     trade.exited_at=exited_at
-
 
     return trade
 
@@ -66,7 +74,14 @@ def get_company(session: Session) -> Company:
 
     return company
 
-def get_trades_to_exit(session: Session, sell_price: Decimal, planned_entry_usd: Decimal, traded_at: datetime) -> list[BitcoinTrade]:
+
+def get_trades_to_exit(
+    session: Session, 
+    sell_price: Decimal, 
+    planned_entry_usd: Decimal, 
+    traded_at: datetime
+) -> list[BitcoinTrade]:
+
     trades = session.scalars(
         select(BitcoinTrade)
         .where(BitcoinTrade.entry_price <= sell_price)
@@ -80,6 +95,11 @@ def get_trades_to_exit(session: Session, sell_price: Decimal, planned_entry_usd:
             continue
 
         if not is_usd_delta_above_min_platform_usd(planned_entry_usd, sell_price, trade):
+            continue
+
+        exiting_trade_usd = sell_price * trade.btc_amount
+        if planned_entry_usd > exiting_trade_usd:
+            logger.warning("Skipping trade_id %s, exiting_trade_usd %s", trade.id, exiting_trade_usd)
             continue
 
         trades_to_exit.append(trade)
