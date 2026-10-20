@@ -12,12 +12,15 @@ import requests
 from consts import BYBIT_API_KEY, BYBIT_BASE_URL, BYBIT_SECRET_KEY, ENV, Environment
 from exchange_types import BtcOrderResult
 from trading_exceptions import LessThanMinimumAmountException
+from utils import _decimal_str
 
 BASE_URL = BYBIT_BASE_URL
 SYMBOL = "BTCUSDT"
 TIMEOUT = 10
 MAX_RETRIES = 10
 RECV_WINDOW = "5000"
+BASE_PRECISION = '0.000001'
+QUOTE_PRECISION = '0.0000001'
 
 
 def _response_data(response):
@@ -118,7 +121,7 @@ def _place_market_order(side, unit, amount):
         time.sleep(1)
     raise RuntimeError(f"Bybit order {order_id} was not filled in time")
 
-# TODO db migrations per
+
 def get_btc_prices():
     result = _request("GET", "/v5/market/tickers", {"category": "spot", "symbol": SYMBOL})
     for ticker in result.get("list", []):
@@ -128,18 +131,10 @@ def get_btc_prices():
 
 
 def buy_btc(usd_amount):
-    rules = _symbol_info()["lotSizeFilter"]
-    amount = _rounded_amount(usd_amount, rules["quotePrecision"])
-    if amount < Decimal(rules["minOrderAmt"]):
-        raise LessThanMinimumAmountException("Bybit buy amount is below minimum order value")
+    amount = _rounded_amount(usd_amount, QUOTE_PRECISION)
     return _place_market_order("Buy", "quoteCoin", amount)
 
 
 def sell_btc(btc_amount):
-    rules = _symbol_info()["lotSizeFilter"]
-    amount = _rounded_amount(btc_amount, rules["basePrecision"])
-    # Bybit enforces the live minimum order value when executing the market sell.
-    maximum = Decimal(rules["maxMarketOrderQty"])
-    if amount > maximum:
-        raise ValueError("Bybit sell amount exceeds maximum market order quantity")
+    amount = _rounded_amount(btc_amount, BASE_PRECISION)
     return _place_market_order("Sell", "baseCoin", amount)

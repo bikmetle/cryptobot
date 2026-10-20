@@ -25,23 +25,17 @@ logger = logging.getLogger(__name__)
 
 def exit_order(sell_price, planned_entry_usd, session, traded_at):
     trades = get_trades_to_exit(session, sell_price, planned_entry_usd, traded_at)
-    for trade in trades:
-        try:
-            order = sell_btc(trade.btc_amount)
-        except LessThanMinimumAmountException as exc:
-            logger.warning("Skipping trade_id %s: %s", trade.id, exc)
-            continue
 
-        # TODO from order.btc
-        # tg msg if trade.btc_amount != order.btc
-        closed_trade_btc = trade.btc_amount
-        # TODO from order.usdt
-        closed_trade_usd = order.price * closed_trade_btc
-        record_trade_exit(trade, closed_trade_usd, order.price, traded_at)
-        update_company(session, closed_trade_usd, -closed_trade_btc)
-        return order.btc, order.usd
+    if not trades:
+        return 0, 0
 
-    raise ExitFailedException()
+    trade = trades[0]
+    order = sell_btc(trade.btc_amount)
+
+    record_trade_exit(trade, order.usd, order.price, traded_at)
+    update_company(session, order.usd, -order.btc)
+
+    return order.btc, order.usd
 
 
 def entry_order(planned_entry_usd, session, traded_at):
@@ -55,6 +49,7 @@ def entry_order(planned_entry_usd, session, traded_at):
 
     return company, entry_btc, entry_usd
 
+
 def trade(session, traded_at):
     """Execute a trade using a session with no active transaction."""
     with session.begin():
@@ -63,30 +58,26 @@ def trade(session, traded_at):
         buy_price, sell_price = get_btc_prices()
         planned_entry_btc = planned_entry_usd / buy_price
 
-        try:
-            exit_btc, exit_usd = exit_order(sell_price, planned_entry_btc, session, traded_at)
-        except ExitFailedException:
-            exit_btc = exit_usd = 0
-
+        exit_btc, exit_usd = exit_order(sell_price, planned_entry_btc, session, traded_at)
         company, entry_btc, entry_usd = entry_order(planned_entry_usd, session, traded_at)
 
         if exit_btc == 0:
             message = (
-                f"\nbought {entry_btc:,.6f} BTC"
-                f"\nspent ${entry_usd:,.8f}"
+                f"\nbought {entry_btc:,.8f} BTC"
+                f"\nspent ${entry_usd:,.2f}"
             )
 
         else:
             message = (
-                f"\nsold {exit_btc - entry_btc:,.6f} BTC"
-                f"\nearned ${exit_usd-entry_usd:,.8f}"
+                f"\nsold {exit_btc - entry_btc:,.8f} BTC"
+                f"\nearned ${exit_usd-entry_usd:,.2f}"
             )
 
         current_btc_value = company.btc * sell_price
         message += (
             f"\n\nBalance: ${company.balance:,.2f}"
             f"\nBTC price: ${sell_price:,.2f}"
-            f"\nOwned: {company.btc:.6f} BTC"
+            f"\nOwned: {company.btc:.8f} BTC"
             f"\nValue: ${current_btc_value:,.2f}"
             f"\nProfit/Loss: ${current_btc_value + company.balance:,.2f}"
         )

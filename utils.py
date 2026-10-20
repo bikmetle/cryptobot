@@ -46,3 +46,15 @@ def calculate_usd_amount(
     usd_amount = _to_decimal(DAILY_BUY_USD) * (1 + _to_decimal(INFLATION) / 100) ** years
 
     return usd_amount
+
+
+def _to_decimal(value):
+    return Decimal(str(value))
+
+
+def _decimal_str(value, precision=None):
+    value = _to_decimal(value)
+    if precision is not None:
+        step = Decimal("1").scaleb(-precision)
+        value = value.quantize(step, rounding=ROUND_DOWN)
+    return format(value.normalize(), "f")
