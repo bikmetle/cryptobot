@@ -1,24 +1,24 @@
 from decimal import Decimal
 import logging
 
-from consts import ENV, EXCHANGE, Environment, Exchange
-from db_helpers import record_trade_entry
-from db_helpers import record_trade_exit
-from db_helpers import get_company, get_trades_to_exit, update_company
-from trading_exceptions import ExitFailedException, LessThanMinimumAmountException
-from utils import calculate_usd_amount
+from app.config import ENV, EXCHANGE, Environment, Exchange
+from app.db.queries import record_trade_entry
+from app.db.queries import record_trade_exit
+from app.db.queries import get_company, get_trades_to_exit, update_company
+from app.trading.exceptions import ExitFailedException, LessThanMinimumAmountException
+from app.trading.calculations import calculate_usd_amount
 
 if ENV == Environment.PROD:
     if EXCHANGE == Exchange.BYBIT:
-        from bybit import buy_btc, get_btc_prices, sell_btc
+        from app.exchanges.bybit import buy_btc, get_btc_prices, sell_btc
     elif EXCHANGE == Exchange.BINANCE:
-        from binance import buy_btc, get_btc_prices, sell_btc
+        from app.exchanges.binance import buy_btc, get_btc_prices, sell_btc
     elif EXCHANGE == Exchange.BITGET:
-        from bitget import buy_btc, get_btc_prices, sell_btc
+        from app.exchanges.bitget import buy_btc, get_btc_prices, sell_btc
     else:
         raise NotImplemented()
 else:
-    from bitget_mock import buy_btc, get_btc_prices, sell_btc
+    from app.exchanges.mock import buy_btc, get_btc_prices, sell_btc
 
 logger = logging.getLogger(__name__)
 

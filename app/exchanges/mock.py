@@ -1,4 +1,4 @@
-from exchange_types import BtcOrderResult
+from app.exchanges.types import BtcOrderResult
 from decimal import Decimal, ROUND_DOWN
 
 BASE_URL = "https://api.bitget.com"

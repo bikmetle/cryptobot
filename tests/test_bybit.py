@@ -8,9 +8,9 @@ from urllib.parse import parse_qs
 import pytest
 import requests
 
-import bybit
-from consts import Environment
-from trading_exceptions import LessThanMinimumAmountException
+from app.exchanges import bybit
+from app.config import Environment
+from app.trading.exceptions import LessThanMinimumAmountException
 
 
 @pytest.fixture(autouse=True)

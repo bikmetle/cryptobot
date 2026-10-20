@@ -12,7 +12,7 @@ def run_config(**values):
     }}
     env.update(PYTHON_DOTENV_DISABLED="1", **values)
     return subprocess.run(
-        [sys.executable, "-c", "import trading; from consts import EXCHANGE; print(EXCHANGE, trading.buy_btc.__module__)"],
+        [sys.executable, "-c", "from app.trading import service as trading; from app.config import EXCHANGE; print(EXCHANGE, trading.buy_btc.__module__)"],
         env=env, capture_output=True, text=True,
     )
 
@@ -21,13 +21,13 @@ def run_config(**values):
 def test_production_uses_selected_exchange(exchange, expected):
     result = run_config(ENV="PROD", EXCHANGE=exchange)
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == f"{expected} {expected}"
+    assert result.stdout.strip() == f"{expected} app.exchanges.{expected}"
 
 
 def test_defaults_to_bybit():
     result = run_config(ENV="PROD")
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == "bybit bybit"
+    assert result.stdout.strip() == "bybit app.exchanges.bybit"
 
 
 @pytest.mark.parametrize("exchange", ["bitget", "binance", "bybit"])
@@ -35,7 +35,7 @@ def test_defaults_to_bybit():
 def test_simulation_remains_enabled_for_all_exchanges(environment, exchange):
     result = run_config(ENV=environment, EXCHANGE=exchange)
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == f"{exchange} bitget_mock"
+    assert result.stdout.strip() == f"{exchange} app.exchanges.mock"
 
 
 def test_unknown_exchange_fails_instead_of_trading_elsewhere():
@@ -48,7 +48,7 @@ def test_bybit_credentials_and_regional_endpoint_configuration():
     env = dict(os.environ, PYTHON_DOTENV_DISABLED="1", BYBIT_API_KEY="bybit-key",
                BYBIT_SECRET_KEY="bybit-secret", BYBIT_BASE_URL="https://api.bybit.id/")
     result = subprocess.run(
-        [sys.executable, "-c", "from consts import BYBIT_API_KEY, BYBIT_SECRET_KEY, BYBIT_BASE_URL; print(BYBIT_API_KEY, BYBIT_SECRET_KEY, BYBIT_BASE_URL)"],
+        [sys.executable, "-c", "from app.config import BYBIT_API_KEY, BYBIT_SECRET_KEY, BYBIT_BASE_URL; print(BYBIT_API_KEY, BYBIT_SECRET_KEY, BYBIT_BASE_URL)"],
         env=env, capture_output=True, text=True,
     )
     assert result.returncode == 0, result.stderr
@@ -64,7 +64,7 @@ def test_bitget_credentials_use_prefixed_variables(prefixed):
         if prefixed:
             env[f"BITGET_{name}"] = "prefixed"
     result = subprocess.run(
-        [sys.executable, "-c", "from consts import BITGET_API_KEY, BITGET_SECRET_KEY, BITGET_PASSPHRASE; print(BITGET_API_KEY, BITGET_SECRET_KEY, BITGET_PASSPHRASE)"],
+        [sys.executable, "-c", "from app.config import BITGET_API_KEY, BITGET_SECRET_KEY, BITGET_PASSPHRASE; print(BITGET_API_KEY, BITGET_SECRET_KEY, BITGET_PASSPHRASE)"],
         env=env, capture_output=True, text=True,
     )
     assert result.returncode == 0, result.stderr

@@ -8,10 +8,10 @@ from urllib.parse import urlencode
 
 import requests
 
-from consts import BITGET_API_KEY, BITGET_PASSPHRASE, BITGET_SECRET_KEY, ENV, Environment
-from trading_exceptions import LessThanMinimumAmountException
-from exchange_types import BtcOrderResult
-from utils import _decimal_str, _to_decimal
+from app.config import BITGET_API_KEY, BITGET_PASSPHRASE, BITGET_SECRET_KEY, ENV, Environment
+from app.trading.exceptions import LessThanMinimumAmountException
+from app.exchanges.types import BtcOrderResult
+from app.trading.calculations import _decimal_str, _to_decimal
 
 BASE_URL = "https://api.bitget.com"
 SYMBOL = "BTCUSDT"

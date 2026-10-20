@@ -6,12 +6,12 @@ from unittest.mock import patch
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
-import trading
-from bitget import _check_response
-from exchange_types import BtcOrderResult
-from database import Base, BitcoinTrade, Company
-from trading_exceptions import LessThanMinimumAmountException
-import utils
+from app.trading import service as trading
+from app.exchanges.bitget import _check_response
+from app.exchanges.types import BtcOrderResult
+from app.db.models import Base, BitcoinTrade, Company
+from app.trading.exceptions import LessThanMinimumAmountException
+from app.trading import calculations as utils
 
 
 class TradingTests(unittest.TestCase):

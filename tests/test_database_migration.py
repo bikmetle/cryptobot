@@ -7,7 +7,7 @@ from alembic.config import Config
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import Session
 
-from database import Base, BitcoinTrade, Company
+from app.db.models import Base, BitcoinTrade, Company
 
 
 def test_monetary_scale_migration_preserves_rows(tmp_path, monkeypatch):

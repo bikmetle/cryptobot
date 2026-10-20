@@ -8,9 +8,9 @@ from urllib.parse import urlencode
 
 import requests
 
-from consts import BINANCE_API_KEY, BINANCE_SECRET_KEY, ENV, Environment
-from exchange_types import BtcOrderResult
-from trading_exceptions import LessThanMinimumAmountException
+from app.config import BINANCE_API_KEY, BINANCE_SECRET_KEY, ENV, Environment
+from app.exchanges.types import BtcOrderResult
+from app.trading.exceptions import LessThanMinimumAmountException
 
 BASE_URL = "https://api.binance.com"
 SYMBOL = "BTCUSDT"

@@ -9,10 +9,10 @@ from urllib.parse import urlencode
 
 import requests
 
-from consts import BYBIT_API_KEY, BYBIT_BASE_URL, BYBIT_SECRET_KEY, ENV, Environment
-from exchange_types import BtcOrderResult
-from trading_exceptions import LessThanMinimumAmountException
-from utils import _decimal_str
+from app.config import BYBIT_API_KEY, BYBIT_BASE_URL, BYBIT_SECRET_KEY, ENV, Environment
+from app.exchanges.types import BtcOrderResult
+from app.trading.exceptions import LessThanMinimumAmountException
+from app.trading.calculations import _decimal_str
 
 BASE_URL = BYBIT_BASE_URL
 SYMBOL = "BTCUSDT"

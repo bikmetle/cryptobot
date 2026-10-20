@@ -2,11 +2,11 @@ from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
-from consts import INFLATION, INTEREST, DAILY_BUY_USD, MIN_PLATFORM_USD, TZINFO
+from app.config import INFLATION, INTEREST, DAILY_BUY_USD, MIN_PLATFORM_USD, TZINFO
 
 if TYPE_CHECKING:
-    from database import Company
-    from database import BitcoinTrade
+    from app.db.models import Company
+    from app.db.models import BitcoinTrade
 
 
 def _to_decimal(value: float | int | str | Decimal | None) -> Decimal:

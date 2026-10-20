@@ -8,8 +8,8 @@ from sqlalchemy import engine_from_config, pool
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from database import Base
-from database import BitcoinTrade
+from app.db.models import Base
+from app.db.models import BitcoinTrade
 
 
 config = context.config
