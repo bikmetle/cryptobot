@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
-from database import SessionLocal
-from database import BitcoinTrade
+from app.db.database import SessionLocal
+from app.db.database import BitcoinTrade
 
 
 def main() -> None:

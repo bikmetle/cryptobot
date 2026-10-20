@@ -7,9 +7,9 @@ from urllib.parse import urlencode
 import pytest
 import requests
 
-import binance
-from consts import Environment
-from trading_exceptions import LessThanMinimumAmountException
+from app.exchanges import binance
+from app.config import Environment
+from app.trading.exceptions import LessThanMinimumAmountException
 
 
 @pytest.fixture(autouse=True)

@@ -28,12 +28,36 @@ In other words, the bot tries to keep buying consistently while closing older po
 - Sends errors to the configured Telegram admin.
 - Includes a small visualization script for saved trade history.
 
+## Project Structure
+
+```text
+app/
+├── main.py                 # Telegram commands and daily scheduler
+├── config.py               # Environment settings
+├── exchanges/              # Exchange clients, simulator, and order types
+├── trading/                # Trading service, calculations, and exceptions
+└── db/                     # SQLAlchemy models, sessions, and queries
+scripts/
+└── visualize.py            # Saved trade charts
+tests/                      # Automated tests
+alembic/                    # Database migrations
+data/                       # Docker database volume
+```
+
+Run commands from the project root. Keep `.env` there; the database paths remain unchanged.
+
 ## Configuration
 
-Create a `.env` file with the required values:
+Copy `.env.example` to `.env` at the project root and fill in the required values. The example defaults to `ENV=DEV` for simulated orders; set `ENV=PROD` to use the selected exchange.
+
+```bash
+cp .env.example .env
+```
+
+Available settings:
 
 ```env
-ENV=PROD
+ENV=DEV
 EXCHANGE=bybit
 
 BITGET_PASSPHRASE=
@@ -87,7 +111,13 @@ Switching keeps the same local trade history and accounting. It does not transfe
 Install the project dependencies in your Python environment, configure `.env`, then run:
 
 ```bash
-python main.py
+python -m app.main
+```
+
+To run the tests:
+
+```bash
+python -m pytest -q
 ```
 
 The bot polls Telegram commands and also starts a background task that runs the trading cycle once per day at midnight UTC.
@@ -118,7 +148,7 @@ docker compose down
 To generate charts from saved trades:
 
 ```bash
-python visualize.py
+python -m scripts.visualize
 ```
 
 The script saves:
@@ -137,3 +167,5 @@ pip install matplotlib
 This project uses real market orders when connected to real exchange credentials. Crypto prices can move quickly, market orders may fill at unexpected prices, and bugs or wrong configuration can lose money.
 
 Use small amounts, test carefully, and never run the bot with funds you cannot afford to lose.
+
+

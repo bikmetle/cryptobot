@@ -3,9 +3,9 @@ from datetime import datetime, time, timedelta
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
-from consts import ADMIN_TG_ID, BOT_TOKEN, GROUP_TG_ID, TZINFO, ENV
-from database import SessionLocal
-from trading import trade
+from app.config import ADMIN_TG_ID, BOT_TOKEN, GROUP_TG_ID, TZINFO, ENV
+from app.db.database import SessionLocal
+from app.trading.service import trade
 
 dp = Dispatcher()
 
