@@ -8,10 +8,14 @@ from trading_exceptions import ExitFailedException, LessThanMinimumAmountExcepti
 from utils import calculate_usd_amount
 
 if ENV == Environment.PROD:
-    if EXCHANGE == Exchange.BINANCE:
+    if EXCHANGE == Exchange.BYBIT:
+        from bybit import buy_btc, get_btc_prices, sell_btc
+    elif EXCHANGE == Exchange.BINANCE:
         from binance import buy_btc, get_btc_prices, sell_btc
-    else:
+    elif EXCHANGE == Exchange.BITGET:
         from bitget import buy_btc, get_btc_prices, sell_btc
+    else:
+        raise NotImplemented()
 else:
     from bitget_mock import buy_btc, get_btc_prices, sell_btc
 
