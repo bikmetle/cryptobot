@@ -113,7 +113,7 @@ class RetryTest(unittest.TestCase):
                 patch.object(trading, 'buy_btc') as buy, \
                 patch.object(trading, 'sell_btc') as sell:
             with self.assertRaises(ExitFailedException):
-                trading.try_to_exit(*self.args)
+                trading.exit_order(*self.args)
             buy.assert_not_called()
             sell.assert_not_called()
 
@@ -126,7 +126,7 @@ class RetryTest(unittest.TestCase):
                 patch.object(trading, 'sell_btc', return_value=buy_order) as buy, \
                 patch.object(trading, 'record_trade_exit') as record_exit, \
                 patch.object(trading, 'update_company') as update_company:
-            result = trading.try_to_exit(self.get_args(new_price))
+            result = trading.exit_order(self.get_args(new_price))
 
         self.assertEqual(result[:3], (D('80000'), D('0.000030'), D('2.40')))
         buy.assert_called_once_with(D('1.200000'))
@@ -144,7 +144,7 @@ class RetryTest(unittest.TestCase):
                 patch.object(trading, 'buy_btc', side_effect=rejection) as buy, \
                 patch.object(trading, 'record_trade_exit') as record_exit:
             with self.assertRaises(ExitFailedException):
-                trading.try_to_exit(*self.args)
+                trading.exit_order(*self.args)
 
         buy.assert_called_once_with(D('1.200000'))
         record_exit.assert_not_called()
@@ -158,7 +158,7 @@ class RetryTest(unittest.TestCase):
                 patch.object(trading, 'sell_btc') as sell, \
                 patch.object(trading, 'record_trade_exit') as record_exit, \
                 patch.object(trading, 'update_company'):
-            result = trading.try_to_exit(*self.args)
+            result = trading.exit_order(*self.args)
 
         self.assertEqual(result[:3], (D('80000'), D('0.000030'), D('2.40')))
         self.assertEqual(
@@ -176,7 +176,7 @@ class RetryTest(unittest.TestCase):
                 patch.object(trading, 'sell_btc') as sell, \
                 patch.object(trading, 'record_trade_exit') as record_exit:
             with self.assertRaises(ExitFailedException):
-                trading.try_to_exit(*self.args)
+                trading.exit_order(*self.args)
 
         self.assertEqual(
             [call.args[0] for call in buy.call_args_list],
@@ -198,7 +198,7 @@ class RetryTest(unittest.TestCase):
                 patch.object(trading, 'buy_btc') as buy, \
                 patch.object(trading, 'sell_btc') as sell:
             with self.assertRaises(ExitFailedException):
-                trading.try_to_exit(
+                trading.exit_order(
                     D('80000'), D('2.40'), D('0.000030'), session, self.now
                 )
 
