@@ -36,7 +36,10 @@ app/
 ├── config.py               # Environment settings
 ├── exchanges/              # Exchange clients, simulator, and order types
 ├── trading/                # Trading service, calculations, and exceptions
-└── db/                     # SQLAlchemy models, sessions, and queries
+└── db/
+    ├── models.py           # SQLAlchemy base and models
+    ├── session.py          # Database URL, engine, and session factory
+    └── queries.py          # Database queries
 scripts/
 └── visualize.py            # Saved trade charts
 tests/                      # Automated tests

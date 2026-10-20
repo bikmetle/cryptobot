@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.trading import service as trading
 from app.exchanges.bitget import _check_response
 from app.exchanges.types import BtcOrderResult
-from app.db.database import Base, BitcoinTrade, Company
+from app.db.models import Base, BitcoinTrade, Company
 from app.trading.exceptions import LessThanMinimumAmountException
 from app.trading import calculations as utils
 

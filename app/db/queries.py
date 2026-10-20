@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import TZINFO
-from app.db.database import BitcoinTrade, Company
+from app.db.models import BitcoinTrade, Company
 from app.trading.calculations import is_price_above_compound_interest, is_usd_delta_above_min_platform_usd
 
 logger = logging.getLogger(__name__)
