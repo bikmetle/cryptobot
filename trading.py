@@ -33,7 +33,7 @@ def exit_order(sell_price, planned_entry_usd, session, traded_at):
             continue
 
         # TODO from order.btc
-        # compare order.btc trade.btc
+        # tg msg if trade.btc_amount != order.btc
         closed_trade_btc = trade.btc_amount
         # TODO from order.usdt
         closed_trade_usd = order.price * closed_trade_btc
@@ -79,7 +79,7 @@ def trade(session, traded_at):
         else:
             message = (
                 f"\nsold {exit_btc - entry_btc:,.6f} BTC"
-                f"\nspent ${entry_usd-exit_usd:,.8f}"
+                f"\nearned ${exit_usd-entry_usd:,.8f}"
             )
 
         current_btc_value = company.btc * sell_price

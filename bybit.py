@@ -106,8 +106,8 @@ def _place_market_order(side, unit, amount):
                 continue
             status = order["orderStatus"]
             if status == "Filled":
-                btc = Decimal(order["cumExecQty"])
-                usd = Decimal(order["cumExecValue"])
+                btc = Decimal(order["cumExecQty"]) - Decimal(order['cumFeeDetail'].get("BTC", 0))
+                usd = Decimal(order["cumExecValue"]) - Decimal(order['cumFeeDetail'].get("USDT", 0))
                 if not btc.is_finite() or not usd.is_finite() or btc <= 0 or usd <= 0:
                     raise RuntimeError(f"Bybit order {order_id} has invalid fill amounts")
                 return BtcOrderResult(usd=usd, btc=btc, price=usd / btc)
@@ -118,7 +118,7 @@ def _place_market_order(side, unit, amount):
         time.sleep(1)
     raise RuntimeError(f"Bybit order {order_id} was not filled in time")
 
-
+# TODO db migrations per
 def get_btc_prices():
     result = _request("GET", "/v5/market/tickers", {"category": "spot", "symbol": SYMBOL})
     for ticker in result.get("list", []):
